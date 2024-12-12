@@ -16,5 +16,5 @@ javafx {
 }
 
 application {
-    mainClass.set("org.openjfx.StudentHub")
+    mainClass.set("org.studenthub.StudentHub")
 }
