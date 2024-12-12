@@ -8,8 +8,7 @@
 erDiagram
     STUDENTS {
         INT student_id PK
-        VARCHAR first_name
-        VARCHAR last_name
+        VARCHAR full_name
         INT group_id FK
     }
 
