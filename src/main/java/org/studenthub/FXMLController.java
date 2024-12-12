@@ -1,4 +1,4 @@
-package org.openjfx;
+package org.studenthub;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -14,8 +14,6 @@ public class FXMLController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        String javaVersion = System.getProperty("java.version");
-        String javafxVersion = System.getProperty("javafx.version");
-        label.setText("Hello, JavaFX " + javafxVersion + "\nRunning on Java " + javaVersion + ".");
+
     }    
 }

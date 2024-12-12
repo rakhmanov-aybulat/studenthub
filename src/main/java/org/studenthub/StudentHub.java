@@ -1,4 +1,4 @@
-package org.openjfx;
+package org.studenthub;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -11,6 +11,9 @@ public class StudentHub extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        stage.setMinWidth(900);
+        stage.setMinHeight(650);
+
         Parent root = FXMLLoader.load(
                 getClass().getResource("scene.fxml"));
         
@@ -18,7 +21,7 @@ public class StudentHub extends Application {
         scene.getStylesheets().add(
                 getClass().getResource("styles.css").toExternalForm());
         
-        stage.setTitle("JavaFX and Gradle");
+        stage.setTitle("StudentHub");
         stage.setScene(scene);
         stage.show();
     }
@@ -26,5 +29,4 @@ public class StudentHub extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
 }
