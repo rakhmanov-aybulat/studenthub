@@ -1,4 +1,5 @@
 package org.studenthub;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -57,6 +58,37 @@ public class Repo {
                 System.out.println("Database connection closed.");
             }
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void executeSqlFile(String resourcePath) {
+        try (InputStream inputStream =
+                     getClass().getResourceAsStream(resourcePath);
+             BufferedReader reader =
+                     new BufferedReader(new InputStreamReader(inputStream))) {
+
+            conn.setAutoCommit(false); // Start transaction
+            String line;
+            StringBuilder sql = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                sql.append(line).append("\n");
+            }
+            String[] statements = sql.toString().split(";");
+            try {
+                for (String statement : statements) {
+                    if (!statement.trim().isEmpty()) {
+                        executeUpdate(statement);
+                    }
+                }
+                conn.commit(); // Commit transaction
+            } catch (SQLException e) {
+                conn.rollback(); // Rollback transaction on failure
+                e.printStackTrace();
+            } finally {
+                conn.setAutoCommit(true); // Reset to auto-commit mode
+            }
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
     }

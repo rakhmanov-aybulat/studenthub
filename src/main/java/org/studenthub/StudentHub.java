@@ -11,6 +11,9 @@ public class StudentHub extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        Repo db = new Repo();
+        db.executeSqlFile("baseline.sql");
+
         stage.setMinWidth(900);
         stage.setMinHeight(650);
 
