@@ -1,22 +1,22 @@
 CREATE TABLE GROUPS (
-    group_id INTEGER PRIMARY KEY,
+    group_id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_name TEXT NOT NULL
 );
 
 CREATE TABLE STUDENTS (
-    student_id INTEGER PRIMARY KEY,
+    student_id INTEGER PRIMARY KEY AUTOINCREMENT,
     full_name TEXT NOT NULL,
     group_id INTEGER,
     FOREIGN KEY (group_id) REFERENCES GROUPS(group_id)
 );
 
 CREATE TABLE DISCIPLINES (
-    discipline_id INTEGER PRIMARY KEY,
+    discipline_id INTEGER PRIMARY KEY AUTOINCREMENT,
     discipline_name TEXT NOT NULL
 );
 
 CREATE TABLE SCHEDULE (
-    schedule_id INTEGER PRIMARY KEY,
+    schedule_id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_id INTEGER,
     discipline_id INTEGER,
     date DATE,
@@ -25,7 +25,7 @@ CREATE TABLE SCHEDULE (
 );
 
 CREATE TABLE ATTENDANCE (
-    attendance_id INTEGER PRIMARY KEY,
+    attendance_id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER,
     schedule_id INTEGER,
     present BOOLEAN,
@@ -34,7 +34,7 @@ CREATE TABLE ATTENDANCE (
 );
 
 CREATE TABLE PRACTICALWORKS (
-    practical_work_id INTEGER PRIMARY KEY,
+    practical_work_id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER,
     discipline_id INTEGER,
     date DATE,

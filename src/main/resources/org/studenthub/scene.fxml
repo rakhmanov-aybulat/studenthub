@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<TabPane minHeight="650.0" minWidth="900.0" prefHeight="650.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1">
+<TabPane minHeight="650.0" minWidth="900.0" prefHeight="650.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
   <tabs>
       <Tab text="Students">
         <content>
@@ -25,7 +25,7 @@
                     <items>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="studentsTableView" layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -44,11 +44,11 @@
                                        <children>
                                           <Label text="Full Name" />
                                           <Label text="Group ID" GridPane.rowIndex="1" />
-                                          <TextField GridPane.columnIndex="1" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <TextField fx:id="studentsFullNameField" GridPane.columnIndex="1" />
+                                          <TextField fx:id="studentsGroupIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add Student" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddStudentButtonClick" text="Add Student" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />
@@ -64,10 +64,10 @@
                                       </rowConstraints>
                                        <children>
                                           <Label text="Student ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="studentsStudentIdField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Remove Student" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRemoveStudentButtonClick" text="Remove Student" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />

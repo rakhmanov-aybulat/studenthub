@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.net.URL;
+
 
 public class StudentHub extends Application {
 
@@ -13,18 +15,19 @@ public class StudentHub extends Application {
     public void start(Stage stage) throws Exception {
         Repo db = new Repo();
         db.executeSqlFile("baseline.sql");
+        StudentService service = new StudentService(db);
+        StudentHubController controller = new StudentHubController(service);
 
+        FXMLLoader loader = new FXMLLoader();
+        URL xmlUrl = getClass().getResource("scene.fxml");
+        loader.setLocation(xmlUrl);
+        loader.setController(controller);
+        Parent root = loader.load();
+
+        stage.setTitle("StudentHub");
         stage.setMinWidth(900);
         stage.setMinHeight(650);
-
-        Parent root = FXMLLoader.load(
-                getClass().getResource("scene.fxml"));
-        
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(
-                getClass().getResource("styles.css").toExternalForm());
-        
-        stage.setTitle("StudentHub");
         stage.setScene(scene);
         stage.show();
     }
