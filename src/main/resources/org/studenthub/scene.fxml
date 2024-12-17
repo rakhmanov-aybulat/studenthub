@@ -111,7 +111,7 @@
                      <items>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="groupsTableView" layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -128,10 +128,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Group Name" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="groupsGroupNameField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add Group" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddGroupButtonClick" text="Add Group" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />
@@ -147,10 +147,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Group ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="groupsGroupIdField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Remove Group" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRemoveGroupButtonClick" text="Remove Group" />
                                  </children>
                               </VBox>
                            </children>
@@ -169,7 +169,7 @@
                      <items>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="disciplinesTableView" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -186,10 +186,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Discipline Name" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="disciplinesDisciplineNameField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add Discipline" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddDisciplineButtonClick" text="Add Discipline" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />
@@ -205,10 +205,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Discipline ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="disciplinesDisciplineIdField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Remove Discipline" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRemoveDisciplineButtonClick" text="Remove Discipline" />
                                  </children>
                               </VBox>
                            </children>
@@ -227,7 +227,7 @@
                      <items>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="scheduleTableView" layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -246,14 +246,14 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Group ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="scheduleGroupIdField" GridPane.columnIndex="1" />
                                           <Label text="Discipline ID" GridPane.rowIndex="1" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <TextField fx:id="scheduleDisciplineIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label text="Date" GridPane.rowIndex="2" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <TextField fx:id="scheduleDateField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add Schedule" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddScheduleButtonClick" text="Add Schedule" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />
@@ -269,10 +269,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Schedule ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="scheduleScheduleIdField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Remove Schedule" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRemoveScheduleButtonClick" text="Remove Schedule" />
                                  </children>
                               </VBox>
                            </children>
@@ -291,7 +291,7 @@
                      <items>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="attendanceTableView" layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -310,14 +310,14 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Student ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="attendanceStudentIdField" GridPane.columnIndex="1" />
                                           <Label text="Schedule ID" GridPane.rowIndex="1" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <TextField fx:id="attendanceScheduleIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label text="Present" GridPane.rowIndex="2" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <TextField fx:id="attendancePresentField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add Attendance" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddAttendanceButtonClick" text="Add Attendance" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />
@@ -333,10 +333,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Attendance ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="attendanceAttendanceIdField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Remove Attendance" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRemoveAttendanceButtonClick" text="Remove Attendance" />
                                  </children>
                               </VBox>
                            </children>
@@ -354,7 +354,7 @@
                      <items>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="practicalWorksTableView" layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -374,16 +374,16 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Student ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="practicalWorksStudentIdField" GridPane.columnIndex="1" />
                                           <Label text="Discipline ID" GridPane.rowIndex="1" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <TextField fx:id="practicalWorksDisciplineIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label text="Date" GridPane.rowIndex="2" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <TextField fx:id="practicalWorksDateField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                           <Label text="Grade" GridPane.rowIndex="3" />
-                                          <TextField GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <TextField fx:id="practicalWorksGradeField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add Practical Work" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddPracticalWorkButtonClick" text="Add Practical Work" />
                                     <Separator prefWidth="200.0">
                                        <VBox.margin>
                                           <Insets bottom="5.0" top="5.0" />
@@ -399,10 +399,10 @@
                                        </rowConstraints>
                                        <children>
                                           <Label text="Practical Work ID" />
-                                          <TextField GridPane.columnIndex="1" />
+                                          <TextField fx:id="practicalWorksPracticalWorkIdField" GridPane.columnIndex="1" />
                                        </children>
                                     </GridPane>
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Remove Practical Work" />
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleRemovePracticalWorkButtonClick" text="Remove Practical Work" />
                                  </children>
                               </VBox>
                            </children>
