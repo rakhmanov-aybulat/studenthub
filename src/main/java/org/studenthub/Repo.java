@@ -29,6 +29,18 @@ public class Repo {
         return null;
     }
 
+    public ResultSet executePreparedQuery(String query, Object... params) {
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            for (int i = 0; i < params.length; i++) {
+                pstmt.setObject(i + 1, params[i]);
+            }
+            return pstmt.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public int executeUpdate(String query) {
         try {
             Statement stmt = conn.createStatement();
