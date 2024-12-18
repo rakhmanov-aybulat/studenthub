@@ -146,6 +146,12 @@ public class StudentHubController implements Initializable {
         TableColumn<Group, String> groupNameColumn = new TableColumn<>("Group Name");
         groupNameColumn.setCellValueFactory(new PropertyValueFactory<>("groupName"));
         groupsTableView.getColumns().add(groupNameColumn);
+
+        groupIdColumn.setPrefWidth(100);
+        groupIdColumn.setMinWidth(100);
+
+        groupNameColumn.setPrefWidth(150);
+        groupNameColumn.setMinWidth(150);
     }
 
     private void setupDisciplinesTableView() {
@@ -156,6 +162,13 @@ public class StudentHubController implements Initializable {
         TableColumn<Discipline, String> disciplineNameColumn = new TableColumn<>("Discipline Name");
         disciplineNameColumn.setCellValueFactory(new PropertyValueFactory<>("disciplineName"));
         disciplinesTableView.getColumns().add(disciplineNameColumn);
+
+        disciplineIdColumn.setPrefWidth(120);
+        disciplineIdColumn.setMinWidth(120);
+
+        disciplineNameColumn.setPrefWidth(250);
+        disciplineNameColumn.setMinWidth(250);
+
     }
 
     private void setupScheduleTableView() {
