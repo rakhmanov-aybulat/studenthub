@@ -279,6 +279,28 @@ public class StudentHubController implements Initializable {
         studentsStudentIdField.clear();
     }
 
+    @FXML
+    private void handleHelpButtonClick() {
+        Alert helpDialog = new Alert(Alert.AlertType.INFORMATION);
+        helpDialog.setTitle("Help");
+        helpDialog.setHeaderText("To import the student list, follow these steps");
+        helpDialog.setContentText(
+                "1. Click the 'Import Student List' button.\n" +
+                "2. Select a text file containing the list of students.\n\n" +
+                "The file must meet the following requirements:\n" +
+                "   - Each line in the file represents a student.\n" +
+                "   - Each line should be formatted as follows: 'Full Name GroupName'.\n" +
+                "   - The full name and group name should be separated by spaces.\n" +
+                "   - The last word in each line will be considered the group name.\n" +
+                "   - All other words in the line will be combined to form the full name of the student.\n\n" +
+                "Example:\n" +
+                "   John Doe GroupA\n" +
+                "   Jane Smith GroupB\n\n" +
+                "Ensure that the file is correctly formatted before importing."
+        );
+        helpDialog.showAndWait();
+    }
+
     private void updateAllGroupNameChoiceBoxes() {
         ObservableList<Group> groups = studentService.getGroupsObservableList();
         studentsGroupNameChoiceBox.getItems().clear();
