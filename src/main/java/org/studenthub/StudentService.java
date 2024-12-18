@@ -2,11 +2,13 @@ package org.studenthub;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.studenthub.exceptions.GroupNotFoundException;
+import org.studenthub.exceptions.InvalidLineFormatException;
 import org.studenthub.model.*;
 
+import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 public class StudentService {
     private Repo db;
@@ -27,9 +29,48 @@ public class StudentService {
                 "DELETE FROM STUDENTS WHERE student_id=?", studentId);
     }
 
+    public boolean studentExists(Student student) {
+        String query = "SELECT 1 FROM STUDENTS WHERE full_name=? AND group_id=?";
+        try (ResultSet rs = db.executePreparedQuery(query,
+                student.getFullName(), student.getGroupName())) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
-    public void importStudentList(List<Student> students) {
+    public void importStudentsFromFile(File file) throws GroupNotFoundException,
+            InvalidLineFormatException, IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        String line;
+        StringBuilder builder;
+        int lineNumber = 0;
+        int i;
+        while ((line = reader.readLine()) != null) {
+            lineNumber += 1;
+            String[] parts = line.split(" ");
+            if (parts.length < 2) {
+                throw new InvalidLineFormatException(lineNumber, line);
+            }
+            builder = new StringBuilder();
+            for (i = 0; i < parts.length - 2; i++) {
+                builder.append(parts[i]).append(" ");
+            }
+            builder.append(parts[i]);
+            String fullName = builder.toString();
+            String groupName = parts[parts.length - 1];
+            Student student = new Student(-1, fullName, groupName);
 
+            if (studentExists(student))
+                continue;
+
+            try {
+                addStudent(student);
+            } catch (SQLException e) {
+                throw new GroupNotFoundException(groupName, lineNumber, line);
+            }
+        }
     }
 
     public ObservableList<Student> getStudentObservableList() {

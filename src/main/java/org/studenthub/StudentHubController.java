@@ -1,5 +1,7 @@
 package org.studenthub;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
@@ -9,6 +11,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
+import org.studenthub.exceptions.GroupNotFoundException;
+import org.studenthub.exceptions.InvalidLineFormatException;
 import org.studenthub.model.*;
 
 public class StudentHubController implements Initializable {
@@ -301,6 +306,43 @@ public class StudentHubController implements Initializable {
         helpDialog.showAndWait();
     }
 
+    @FXML
+    private void handleImportStudentListButtonClick() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Student List File");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile == null) {
+            return;
+        }
+
+        String errorMessage = null;
+        try {
+            studentService.importStudentsFromFile(selectedFile);
+            updateStudentsTableView();
+        } catch (InvalidLineFormatException | GroupNotFoundException e) {
+            errorMessage = e.getMessage() +
+                    "\n\nPlease correct the errors and try again.";
+        } catch (FileNotFoundException e) {
+            errorMessage = "File not found with name: " + selectedFile.getName();
+        } catch (Exception ignored) {
+            errorMessage = "Something went wrong, please try again";
+        } finally {
+            if (errorMessage != null)
+                showErrorAlert(errorMessage);
+        }
+    }
+
+    private void showErrorAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
     private void updateAllGroupNameChoiceBoxes() {
         ObservableList<Group> groups = studentService.getGroupsObservableList();
         studentsGroupNameChoiceBox.getItems().clear();
@@ -428,4 +470,5 @@ public class StudentHubController implements Initializable {
 
         practicalWorksStudentIdField.clear();
     }
+
 }

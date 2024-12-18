@@ -66,22 +66,6 @@ public class Repo {
         return 0;
     }
 
-    public int getGroupIdByGroupName(String groupName) throws SQLException {
-        String query = "SELECT group_id FROM GROUPS WHERE group_name=?;";
-        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setObject(1, groupName);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("group_id");
-            } else {
-                throw new SQLException("Group not found with name: " + groupName);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
     public void close() {
         try {
             if (conn != null) {

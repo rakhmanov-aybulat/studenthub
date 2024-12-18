@@ -83,7 +83,7 @@
                                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                       </rowConstraints>
                                        <children>
-                                          <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Import Student List" />
+                                          <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleImportStudentListButtonClick" text="Import Student List" />
                                           <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleHelpButtonClick" text="?" GridPane.columnIndex="1">
                                              <GridPane.margin>
                                                 <Insets />
