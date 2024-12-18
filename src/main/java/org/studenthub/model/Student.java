@@ -6,12 +6,12 @@ import javafx.beans.property.SimpleStringProperty;
 public class Student {
     private SimpleIntegerProperty studentId;
     private SimpleStringProperty fullName;
-    private SimpleIntegerProperty groupId;
+    private SimpleStringProperty groupName;
 
-    public Student(int studentId, String fullName, int groupId) {
+    public Student(int studentId, String fullName, String groupName) {
         this.studentId = new SimpleIntegerProperty(studentId);
         this.fullName = new SimpleStringProperty(fullName);
-        this.groupId = new SimpleIntegerProperty(groupId);
+        this.groupName = new SimpleStringProperty(groupName);
     }
 
     public int getStudentId() {
@@ -30,11 +30,11 @@ public class Student {
         this.fullName.set(fullName);
     }
 
-    public int getGroupId() {
-        return groupId.get();
+    public String getGroupName() {
+        return groupName.get();
     }
 
-    public void setGroupId(int groupId) {
-        this.groupId.set(groupId);
+    public void setGroupName(String groupName) {
+        this.groupName.set(groupName);
     }
 }

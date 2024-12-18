@@ -15,10 +15,11 @@ public class StudentService {
         this.db = db;
     }
 
-    public void addStudent(Student student) {
+    public void addStudent(Student student) throws SQLException {
+        int groupId = getGroupIdByGroupName(student.getGroupName());
         db.executePreparedUpdate(
                 "INSERT INTO STUDENTS (full_name, group_id) VALUES (?, ?)",
-                student.getFullName(), student.getGroupId());
+                student.getFullName(), groupId);
     }
 
     public void removeStudent(int studentId) {
@@ -33,13 +34,15 @@ public class StudentService {
 
     public ObservableList<Student> getStudentObservableList() {
         ObservableList<Student> students = FXCollections.observableArrayList();
-        String query = "SELECT student_id, full_name, group_id FROM STUDENTS";
+        String query = "SELECT s.student_id, s.full_name, g.group_name " +
+                "FROM STUDENTS s " +
+                "JOIN GROUPS g ON s.group_id = g.group_id";
         try (ResultSet rs = db.executeQuery(query)) {
             while (rs.next()) {
                 students.add(new Student(
                         rs.getInt("student_id"),
                         rs.getString("full_name"),
-                        rs.getInt("group_id"))
+                        rs.getString("group_name"))
                 );
             }
         } catch (Exception e) {

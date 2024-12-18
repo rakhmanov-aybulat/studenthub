@@ -120,9 +120,22 @@ public class StudentHubController implements Initializable {
         fullNameColumn.setCellValueFactory(new PropertyValueFactory<>("fullName"));
         studentsTableView.getColumns().add(fullNameColumn);
 
-        TableColumn<Student, Integer> groupIdColumn = new TableColumn<>("Group ID");
-        groupIdColumn.setCellValueFactory(new PropertyValueFactory<>("groupId"));
-        studentsTableView.getColumns().add(groupIdColumn);
+        TableColumn<Student, String> groupNameColumn = new TableColumn<>("Group Name");
+        groupNameColumn.setCellValueFactory(new PropertyValueFactory<>("groupName"));
+        studentsTableView.getColumns().add(groupNameColumn);
+
+        studentIdColumn.setPrefWidth(100);
+        studentIdColumn.setMinWidth(100);
+
+        fullNameColumn.setPrefWidth(300);
+        fullNameColumn.setMinWidth(300);
+
+        groupNameColumn.prefWidthProperty().bind(
+                studentsTableView.widthProperty()
+                .subtract(studentIdColumn.widthProperty())
+                .subtract(fullNameColumn.widthProperty())
+        );
+        groupNameColumn.setMinWidth(150);
     }
 
     private void setupGroupsTableView() {
@@ -237,8 +250,7 @@ public class StudentHubController implements Initializable {
     private void handleAddStudentButtonClick() throws SQLException {
         String fullName = studentsFullNameField.getText();
         String groupName = studentsGroupNameChoiceBox.getValue();
-        int groupId = studentService.getGroupIdByGroupName(groupName);
-        Student student = new Student(-1, fullName, groupId);
+        Student student = new Student(-1, fullName, groupName);
         studentService.addStudent(student);
 
         updateStudentsTableView();
