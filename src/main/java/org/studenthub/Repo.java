@@ -30,11 +30,13 @@ public class Repo {
     }
 
     public ResultSet executePreparedQuery(String query, Object... params) {
-        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(query);
             for (int i = 0; i < params.length; i++) {
                 pstmt.setObject(i + 1, params[i]);
             }
-            return pstmt.executeQuery();
+            ResultSet rs = pstmt.executeQuery();
+            return rs;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -52,7 +54,8 @@ public class Repo {
     }
 
     public int executePreparedUpdate(String query, Object... params) {
-        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(query);
             for (int i = 0; i < params.length; i++) {
                 pstmt.setObject(i + 1, params[i]);
             }
@@ -61,6 +64,22 @@ public class Repo {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public int getGroupIdByGroupName(String groupName) throws SQLException {
+        String query = "SELECT group_id FROM GROUPS WHERE group_name=?;";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setObject(1, groupName);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("group_id");
+            } else {
+                throw new SQLException("Group not found with name: " + groupName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public void close() {

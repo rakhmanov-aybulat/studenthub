@@ -1,14 +1,13 @@
 package org.studenthub;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.studenthub.model.*;
 
@@ -20,7 +19,7 @@ public class StudentHubController implements Initializable {
     private TextField studentsFullNameField;
 
     @FXML
-    private TextField studentsGroupIdField;
+    private ChoiceBox<String> studentsGroupNameChoiceBox;
 
     @FXML
     private TextField studentsStudentIdField;
@@ -100,14 +99,16 @@ public class StudentHubController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupStudentsTableView();
-        updateStudentsTableView();
         setupGroupsTableView();
-        updateGroupsTableView();
-
         setupDisciplinesTableView();
         setupScheduleTableView();
         setupAttendanceTableView();
         setupPracticalWorksTableView();
+
+        updateStudentsTableView();
+        updateGroupsTableView();
+
+        updateAllGroupNameChoiceBoxes();
     }
 
     private void setupStudentsTableView() {
@@ -233,17 +234,16 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddStudentButtonClick() {
+    private void handleAddStudentButtonClick() throws SQLException {
         String fullName = studentsFullNameField.getText();
-        int groupId = Integer.parseInt(studentsGroupIdField.getText());
+        String groupName = studentsGroupNameChoiceBox.getValue();
+        int groupId = studentService.getGroupIdByGroupName(groupName);
         Student student = new Student(-1, fullName, groupId);
-
         studentService.addStudent(student);
 
         updateStudentsTableView();
-
         studentsFullNameField.clear();
-        studentsGroupIdField.clear();
+        studentsGroupNameChoiceBox.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -251,8 +251,15 @@ public class StudentHubController implements Initializable {
         int studentId = Integer.parseInt(studentsStudentIdField.getText());
         studentService.removeStudent(studentId);
         updateStudentsTableView();
-
         studentsStudentIdField.clear();
+    }
+
+    private void updateAllGroupNameChoiceBoxes() {
+        ObservableList<Group> groups = studentService.getGroupsObservableList();
+        studentsGroupNameChoiceBox.getItems().clear();
+        groups.forEach(group -> {
+            studentsGroupNameChoiceBox.getItems().add(group.getGroupName());
+        });
     }
 
     @FXML
@@ -264,6 +271,8 @@ public class StudentHubController implements Initializable {
 
         updateGroupsTableView();
         groupsGroupNameField.clear();
+
+        updateAllGroupNameChoiceBoxes();
     }
 
     @FXML
@@ -272,8 +281,9 @@ public class StudentHubController implements Initializable {
         studentService.removeGroup(groupId);
         updateGroupsTableView();
 
-        studentsGroupIdField.clear();
+        groupsGroupIdField.clear();
     }
+
 
     @FXML
     private void handleAddDisciplineButtonClick() {

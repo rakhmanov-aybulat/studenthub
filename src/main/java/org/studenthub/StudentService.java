@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import org.studenthub.model.*;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public class StudentService {
@@ -72,6 +73,20 @@ public class StudentService {
     public void removeGroup(int groupId) {
         db.executePreparedUpdate(
                 "DELETE FROM GROUPS WHERE group_id=?", groupId);
+    }
+
+    public int getGroupIdByGroupName(String groupName) throws SQLException {
+        String query = "SELECT group_id FROM GROUPS WHERE group_name=?";
+        try (ResultSet rs = db.executePreparedQuery(query, groupName)) {
+            if (rs.next()) {
+                return rs.getInt("group_id");
+            } else {
+                throw new SQLException("Group not found with name: " + groupName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public ObservableList<Discipline> getDisciplinesObservableList() {
@@ -164,7 +179,7 @@ public class StudentService {
 
     public void removeAttendance(int attendanceId) {
         db.executePreparedUpdate(
-                "DELETE FROM ATTENDANCE WHERE attendance_id=?",
+                "DELETE FROM ATTENDANCE WHERE attendance_id=?;",
                 attendanceId);
     }
 
