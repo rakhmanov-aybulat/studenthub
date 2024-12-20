@@ -278,7 +278,13 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleRemoveStudentButtonClick() {
-        int studentId = Integer.parseInt(studentsStudentIdField.getText());
+        int studentId;
+        try {
+            studentId = Integer.parseInt(studentsStudentIdField.getText());
+        } catch (NumberFormatException ignored) {
+            showErrorAlert("Student ID must be integer");
+            return;
+        }
         studentService.removeStudent(studentId);
         updateStudentsTableView();
         studentsStudentIdField.clear();
