@@ -1,4 +1,6 @@
 package org.studenthub;
+import org.sqlite.SQLiteConfig;
+
 import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +14,10 @@ public class Repo {
     Repo() {
         try {
             Class.forName("org.sqlite.JDBC");
-            conn = DriverManager.getConnection("jdbc:sqlite::memory:");
+            SQLiteConfig config = new SQLiteConfig();
+            config.enforceForeignKeys(true);
+            conn = DriverManager.getConnection(
+                    "jdbc:sqlite::memory:", config.toProperties());
             System.out.println("Database connection established.");
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -53,17 +58,12 @@ public class Repo {
         return 0;
     }
 
-    public int executePreparedUpdate(String query, Object... params) {
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            for (int i = 0; i < params.length; i++) {
-                pstmt.setObject(i + 1, params[i]);
-            }
-            return pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public int executePreparedUpdate(String query, Object... params) throws SQLException {
+        PreparedStatement pstmt = conn.prepareStatement(query);
+        for (int i = 0; i < params.length; i++) {
+            pstmt.setObject(i + 1, params[i]);
         }
-        return 0;
+        return pstmt.executeUpdate();
     }
 
     public void close() {

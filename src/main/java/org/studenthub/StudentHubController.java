@@ -12,8 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
-import org.studenthub.exceptions.GroupNotFoundException;
-import org.studenthub.exceptions.InvalidLineFormatException;
+import org.studenthub.exceptions.*;
 import org.studenthub.model.*;
 
 public class StudentHubController implements Initializable {
@@ -265,15 +264,16 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddStudentButtonClick() throws SQLException {
+    private void handleAddStudentButtonClick() {
         String fullName = studentsFullNameField.getText().trim();
         String groupName = studentsGroupNameChoiceBox.getValue().trim();
         Student student = new Student(-1, fullName, groupName);
         try {
             studentService.addStudent(student);
+        } catch (GroupNotFoundException | StudentAlreadyExistsException e) {
+            showErrorAlert(e.getMessage());
         } catch (SQLException e) {
-            String errorMessage = "Group not found with name: " + groupName;
-            showErrorAlert(errorMessage);
+            throw new RuntimeException(e);
         }
         updateStudentsTableView();
         studentsFullNameField.clear();
@@ -284,14 +284,17 @@ public class StudentHubController implements Initializable {
     private void handleRemoveStudentButtonClick() {
         int studentId;
         try {
-            studentId = Integer.parseInt(
-                    studentsStudentIdField.getText().trim());
-        } catch (NumberFormatException ignored) {
+            studentId = Integer.parseInt(studentsStudentIdField.getText().trim());
+        } catch (NumberFormatException e) {
             showErrorAlert("Student ID must be integer");
             return;
         }
-        studentService.removeStudent(studentId);
-        updateStudentsTableView();
+        try {
+            studentService.removeStudent(studentId);
+            updateStudentsTableView();
+        } catch (EntityDeletionException e) {
+            showErrorAlert(e.getMessage());
+        }
         studentsStudentIdField.clear();
     }
 
@@ -331,12 +334,12 @@ public class StudentHubController implements Initializable {
         String errorMessage = null;
         try {
             studentService.importStudentsFromFile(selectedFile);
-        } catch (InvalidLineFormatException | GroupNotFoundException e) {
+        } catch (ImportInvalidLineFormatException | ImportGroupNotFoundException e) {
             errorMessage = e.getMessage() +
                     "\n\nPlease correct the errors and try again.";
         } catch (FileNotFoundException e) {
             errorMessage = "File not found with name: " + selectedFile.getName();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             errorMessage = "Something went wrong, please try again";
         } finally {
             if (errorMessage != null)
@@ -363,29 +366,41 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleAddGroupButtonClick() {
-        String groupName = groupsGroupNameField.getText();
+        String groupName = groupsGroupNameField.getText().trim();
         Group group = new Group(-1, groupName);
-
-        studentService.addGroup(group);
-
+        try {
+            studentService.addGroup(group);
+        } catch (GroupAlreadyExistsException e) {
+            showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         updateGroupsTableView();
         groupsGroupNameField.clear();
-
         updateAllGroupNameChoiceBoxes();
     }
 
     @FXML
     private void handleRemoveGroupButtonClick() {
-        int groupId = Integer.parseInt(groupsGroupIdField.getText());
-        studentService.removeGroup(groupId);
-        updateGroupsTableView();
-
+        int groupId;
+        try {
+            groupId = Integer.parseInt(groupsGroupIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Group ID must be integer");
+            return;
+        }
+        try {
+            studentService.removeGroup(groupId);
+            updateGroupsTableView();
+        } catch (EntityDeletionException e) {
+            showErrorAlert(e.getMessage());
+        }
         groupsGroupIdField.clear();
     }
 
 
     @FXML
-    private void handleAddDisciplineButtonClick() {
+    private void handleAddDisciplineButtonClick() throws SQLException {
         String disciplineName = disciplinesDisciplineNameField.getText();
         Discipline discipline = new Discipline(-1, disciplineName);
 
@@ -396,7 +411,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleRemoveDisciplineButtonClick() {
+    private void handleRemoveDisciplineButtonClick() throws SQLException {
         int disciplineId = Integer.parseInt(disciplinesDisciplineIdField.getText());
         studentService.removeDiscipline(disciplineId);
         updateDisciplinesTableView();
@@ -405,7 +420,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddScheduleButtonClick() {
+    private void handleAddScheduleButtonClick() throws SQLException {
         int groupId = Integer.parseInt(scheduleGroupIdField.getText());
         int disciplineId = Integer.parseInt(scheduleDisciplineIdField.getText());
         String date = scheduleDateField.getText();
@@ -421,7 +436,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleRemoveScheduleButtonClick() {
+    private void handleRemoveScheduleButtonClick() throws SQLException {
         int scheduleId = Integer.parseInt(scheduleGroupIdField.getText());
         studentService.removeSchedule(scheduleId);
         updateScheduleTableView();
@@ -430,7 +445,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddAttendanceButtonClick() {
+    private void handleAddAttendanceButtonClick() throws SQLException {
         int studentId = Integer.parseInt(attendanceStudentIdField.getText());
         int scheduleId = Integer.parseInt(attendanceScheduleIdField.getText());
         boolean present = Boolean.parseBoolean(attendancePresentField.getText());
@@ -446,7 +461,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleRemoveAttendanceButtonClick() {
+    private void handleRemoveAttendanceButtonClick() throws SQLException {
         int attendanceId = Integer.parseInt(attendanceStudentIdField.getText());
         studentService.removeAttendance(attendanceId);
         updateAttendanceTableView();
@@ -455,7 +470,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddPracticalWorkButtonClick() {
+    private void handleAddPracticalWorkButtonClick() throws SQLException {
         int studentId = Integer.parseInt(practicalWorksStudentIdField.getText());
         int disciplineId = Integer.parseInt(practicalWorksDisciplineIdField.getText());
         String date = practicalWorksDateField.getText();
@@ -473,7 +488,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleRemovePracticalWorkButtonClick() {
+    private void handleRemovePracticalWorkButtonClick() throws SQLException {
         int practicalWorkId = Integer.parseInt(practicalWorksStudentIdField.getText());
         studentService.removePracticalWork(practicalWorkId);
         updatePracticalWorksTableView();

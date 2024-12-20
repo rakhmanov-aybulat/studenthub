@@ -1,6 +1,24 @@
 INSERT INTO GROUPS (group_name) VALUES ('Group A');
 INSERT INTO GROUPS (group_name) VALUES ('Group B');
 INSERT INTO GROUPS (group_name) VALUES ('Group C');
+INSERT INTO GROUPS (group_name) VALUES ('Group D');
+INSERT INTO GROUPS (group_name) VALUES ('Group E');
+INSERT INTO GROUPS (group_name) VALUES ('Group F');
+INSERT INTO GROUPS (group_name) VALUES ('Group G');
+INSERT INTO GROUPS (group_name) VALUES ('Group H');
+INSERT INTO GROUPS (group_name) VALUES ('Group I');
+INSERT INTO GROUPS (group_name) VALUES ('Group J');
+INSERT INTO GROUPS (group_name) VALUES ('Group K');
+INSERT INTO GROUPS (group_name) VALUES ('Group L');
+INSERT INTO GROUPS (group_name) VALUES ('Group L');
+INSERT INTO GROUPS (group_name) VALUES ('Group M');
+INSERT INTO GROUPS (group_name) VALUES ('Group N');
+INSERT INTO GROUPS (group_name) VALUES ('Group O');
+INSERT INTO GROUPS (group_name) VALUES ('Group P');
+INSERT INTO GROUPS (group_name) VALUES ('Group Q');
+INSERT INTO GROUPS (group_name) VALUES ('Group R');
+INSERT INTO GROUPS (group_name) VALUES ('Group S');
+INSERT INTO GROUPS (group_name) VALUES ('Group T');
 
 INSERT INTO STUDENTS (full_name, group_id) VALUES ('John Doe', 1);
 INSERT INTO STUDENTS (full_name, group_id) VALUES ('Jane Smith', 1);

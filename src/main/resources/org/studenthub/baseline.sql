@@ -1,3 +1,4 @@
+PRAGMA foreign_keys = ON;
 CREATE TABLE GROUPS (
     group_id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_name TEXT NOT NULL

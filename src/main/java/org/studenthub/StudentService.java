@@ -2,8 +2,7 @@ package org.studenthub;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.studenthub.exceptions.GroupNotFoundException;
-import org.studenthub.exceptions.InvalidLineFormatException;
+import org.studenthub.exceptions.*;
 import org.studenthub.model.*;
 
 import java.io.*;
@@ -17,31 +16,46 @@ public class StudentService {
         this.db = db;
     }
 
-    public void addStudent(Student student) throws SQLException {
+    public void addStudent(Student student) throws GroupNotFoundException, StudentAlreadyExistsException, SQLException {
+        if (studentExists(student)) {
+            throw new StudentAlreadyExistsException(student);
+        }
         int groupId = getGroupIdByGroupName(student.getGroupName());
         db.executePreparedUpdate(
                 "INSERT INTO STUDENTS (full_name, group_id) VALUES (?, ?)",
                 student.getFullName(), groupId);
     }
 
-    public void removeStudent(int studentId) {
-        db.executePreparedUpdate(
-                "DELETE FROM STUDENTS WHERE student_id=?", studentId);
+    public void removeStudent(int studentId) throws EntityDeletionException {
+        String query = "DELETE FROM STUDENTS WHERE student_id=?";
+        try {
+            db.executePreparedUpdate(query, studentId);
+        } catch (SQLException e) {
+            throw new EntityDeletionException(
+                    "Cannot delete student with ID: " + studentId +
+                    ". because it has associations with other entities.");
+        }
     }
 
     public boolean studentExists(Student student) {
+        int groupId;
+        try {
+            groupId = getGroupIdByGroupName(student.getGroupName());
+        } catch (GroupNotFoundException e) {
+            return false;
+        }
+
         String query = "SELECT 1 FROM STUDENTS WHERE full_name=? AND group_id=?";
         try (ResultSet rs = db.executePreparedQuery(query,
-                student.getFullName(), student.getGroupName())) {
+                student.getFullName(), groupId)) {
             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
 
-    public void importStudentsFromFile(File file) throws GroupNotFoundException,
-            InvalidLineFormatException, IOException {
+    public void importStudentsFromFile(File file) throws ImportGroupNotFoundException,
+            ImportInvalidLineFormatException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
         int lineNumber = 0;
@@ -49,19 +63,20 @@ public class StudentService {
             lineNumber += 1;
             String[] parts = line.split(",");
             if (parts.length != 2) {
-                throw new InvalidLineFormatException(lineNumber, line);
+                throw new ImportInvalidLineFormatException(lineNumber, line);
             }
             String fullName = parts[0].trim();
             String groupName = parts[1].trim();
             Student student = new Student(-1, fullName, groupName);
 
-            if (studentExists(student))
-                continue;
-
             try {
                 addStudent(student);
+            } catch (GroupNotFoundException e) {
+                throw new ImportGroupNotFoundException(groupName, lineNumber , line);
+            } catch (StudentAlreadyExistsException e) {
+                continue;
             } catch (SQLException e) {
-                throw new GroupNotFoundException(groupName, lineNumber, line);
+                throw new RuntimeException(e);
             }
         }
     }
@@ -101,28 +116,43 @@ public class StudentService {
         return groups;
     }
 
-    public void addGroup(Group group) {
+    public void addGroup(Group group) throws GroupAlreadyExistsException, SQLException {
+        if (groupExists(group))
+            throw new GroupAlreadyExistsException(group.getGroupName());
+
         db.executePreparedUpdate(
                 "INSERT INTO GROUPS (group_name) VALUES (?)",
                 group.getGroupName());
     }
 
-    public void removeGroup(int groupId) {
-        db.executePreparedUpdate(
-                "DELETE FROM GROUPS WHERE group_id=?", groupId);
+    public void removeGroup(int groupId) throws EntityDeletionException {
+        try {
+            db.executePreparedUpdate(
+                    "DELETE FROM GROUPS WHERE group_id=?", groupId);
+        } catch (SQLException e) {
+            throw new EntityDeletionException(
+                    "Cannot delete group with ID: " + groupId +
+                    ". because it has associations with other entities.");
+        }
     }
 
-    public int getGroupIdByGroupName(String groupName) throws SQLException {
+    public boolean groupExists(Group group) {
+        String query = "SELECT 1 FROM GROUPS WHERE group_name=?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, group.getGroupName())) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public int getGroupIdByGroupName(String groupName) throws GroupNotFoundException {
         String query = "SELECT group_id FROM GROUPS WHERE group_name=?";
         try (ResultSet rs = db.executePreparedQuery(query, groupName)) {
-            if (rs.next()) {
+            if (rs.next())
                 return rs.getInt("group_id");
-            } else {
-                throw new SQLException("Group not found with name: " + groupName);
-            }
-        } catch (SQLException e) {
-            throw e;
-        }
+        } catch (SQLException ignored) {}
+        throw new GroupNotFoundException(groupName);
     }
 
     public ObservableList<Discipline> getDisciplinesObservableList() {
@@ -141,14 +171,14 @@ public class StudentService {
         return disciplines;
     }
 
-    public void addDiscipline(Discipline discipline) {
+    public void addDiscipline(Discipline discipline) throws SQLException {
         db.executePreparedUpdate(
                 "INSERT INTO DISCIPLINES (discipline_name) VALUES (?)",
                 discipline.getDisciplineName()
         );
     }
 
-    public void removeDiscipline(int disciplineId) {
+    public void removeDiscipline(int disciplineId) throws SQLException {
         db.executePreparedUpdate(
                 "DELETE FROM DISCIPLINES WHERE discipline_id=?",
                 disciplineId
@@ -174,7 +204,7 @@ public class StudentService {
         return schedules;
     }
 
-    public void addSchedule(Schedule schedule) {
+    public void addSchedule(Schedule schedule) throws SQLException {
         db.executePreparedUpdate(
                 "INSERT INTO SCHEDULE (group_id, discipline_id, date) " +
                         "VALUES (?, ?, ?)", schedule.getGroupId(),
@@ -182,7 +212,7 @@ public class StudentService {
         );
     }
 
-    public void removeSchedule(int scheduleId) {
+    public void removeSchedule(int scheduleId) throws SQLException {
         db.executePreparedUpdate(
                 "DELETE FROM SCHEDULE WHERE schedule_id=?", scheduleId);
     }
@@ -206,14 +236,14 @@ public class StudentService {
         return attendances;
     }
 
-    public void addAttendance(Attendance attendance) {
+    public void addAttendance(Attendance attendance) throws SQLException {
         db.executePreparedUpdate(
                 "INSERT INTO ATTENDANCE (student_id, schedule_id, present) " +
                         "VALUES (?, ?, ?)", attendance.getStudentId(),
                 attendance.getScheduleId(), attendance.isPresent());
     }
 
-    public void removeAttendance(int attendanceId) {
+    public void removeAttendance(int attendanceId) throws SQLException {
         db.executePreparedUpdate(
                 "DELETE FROM ATTENDANCE WHERE attendance_id=?;",
                 attendanceId);
@@ -239,7 +269,7 @@ public class StudentService {
         return practicalWorks;
     }
 
-    public void addPracticalWork(PracticalWork practicalWork) {
+    public void addPracticalWork(PracticalWork practicalWork) throws SQLException {
         db.executePreparedUpdate(
                 "INSERT INTO PRACTICALWORKS (student_id, discipline_id, " +
                         "date, grade) VALUES (?, ?, ?, ?)",
@@ -248,7 +278,7 @@ public class StudentService {
         );
     }
 
-    public void removePracticalWork(int practicalWorkId) {
+    public void removePracticalWork(int practicalWorkId) throws SQLException {
         db.executePreparedUpdate(
                 "DELETE FROM PRACTICALWORKS WHERE practical_work_id=?",
                 practicalWorkId
