@@ -16,9 +16,11 @@ public class StudentService {
         this.db = db;
     }
 
-    public void addStudent(Student student) throws GroupNotFoundException, StudentAlreadyExistsException, SQLException {
+    public void addStudent(Student student) throws GroupNotFoundException,
+            EntityAlreadyExistsException, SQLException {
         if (studentExists(student)) {
-            throw new StudentAlreadyExistsException(student);
+            throw new EntityAlreadyExistsException("Group with name: " +
+                    student.getFullName() + " already exists");
         }
         int groupId = getGroupIdByGroupName(student.getGroupName());
         db.executePreparedUpdate(
@@ -73,7 +75,7 @@ public class StudentService {
                 addStudent(student);
             } catch (GroupNotFoundException e) {
                 throw new ImportGroupNotFoundException(groupName, lineNumber , line);
-            } catch (StudentAlreadyExistsException e) {
+            } catch (EntityAlreadyExistsException e) {
                 continue;
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -116,9 +118,10 @@ public class StudentService {
         return groups;
     }
 
-    public void addGroup(Group group) throws GroupAlreadyExistsException, SQLException {
+    public void addGroup(Group group) throws EntityAlreadyExistsException, SQLException {
         if (groupExists(group))
-            throw new GroupAlreadyExistsException(group.getGroupName());
+            throw new EntityAlreadyExistsException("Group with name: " +
+                    group.getGroupName() + " already exists");
 
         db.executePreparedUpdate(
                 "INSERT INTO GROUPS (group_name) VALUES (?)",
@@ -171,18 +174,36 @@ public class StudentService {
         return disciplines;
     }
 
-    public void addDiscipline(Discipline discipline) throws SQLException {
+    public void addDiscipline(Discipline discipline) throws SQLException, EntityAlreadyExistsException {
+        if (disciplineExists(discipline))
+            throw new EntityAlreadyExistsException("Discipline with name: " +
+                    discipline.getDisciplineName() + " already exists");
         db.executePreparedUpdate(
                 "INSERT INTO DISCIPLINES (discipline_name) VALUES (?)",
                 discipline.getDisciplineName()
         );
     }
 
-    public void removeDiscipline(int disciplineId) throws SQLException {
-        db.executePreparedUpdate(
-                "DELETE FROM DISCIPLINES WHERE discipline_id=?",
-                disciplineId
-        );
+    private boolean disciplineExists(Discipline discipline) {
+        String query = "SELECT 1 FROM DISCIPLINES WHERE discipline_name=?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, discipline.getDisciplineName())) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public void removeDiscipline(int disciplineId) throws EntityDeletionException {
+        try {
+            db.executePreparedUpdate(
+                    "DELETE FROM DISCIPLINES WHERE discipline_id=?",
+                    disciplineId);
+        } catch (SQLException e) {
+            throw new EntityDeletionException(
+                    "Cannot delete discipline with ID: " + disciplineId +
+                            ". because it has associations with other entities.");
+        }
     }
 
     public ObservableList<Schedule> getSchedulesObservableList() {

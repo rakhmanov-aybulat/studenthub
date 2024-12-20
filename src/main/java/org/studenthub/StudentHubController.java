@@ -111,6 +111,7 @@ public class StudentHubController implements Initializable {
 
         updateStudentsTableView();
         updateGroupsTableView();
+        updateDisciplinesTableView();
 
         updateAllGroupNameChoiceBoxes();
     }
@@ -270,11 +271,10 @@ public class StudentHubController implements Initializable {
         Student student = new Student(-1, fullName, groupName);
         try {
             studentService.addStudent(student);
-        } catch (GroupNotFoundException | StudentAlreadyExistsException e) {
+        } catch (GroupNotFoundException | EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (SQLException ignored) {}
+
         updateStudentsTableView();
         studentsFullNameField.clear();
         studentsGroupNameChoiceBox.getSelectionModel().clearSelection();
@@ -370,11 +370,10 @@ public class StudentHubController implements Initializable {
         Group group = new Group(-1, groupName);
         try {
             studentService.addGroup(group);
-        } catch (GroupAlreadyExistsException e) {
+        } catch (EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (SQLException ignored) {}
+
         updateGroupsTableView();
         groupsGroupNameField.clear();
         updateAllGroupNameChoiceBoxes();
@@ -401,10 +400,14 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleAddDisciplineButtonClick() throws SQLException {
-        String disciplineName = disciplinesDisciplineNameField.getText();
+        String disciplineName = disciplinesDisciplineNameField.getText().trim();
         Discipline discipline = new Discipline(-1, disciplineName);
 
-        studentService.addDiscipline(discipline);
+        try {
+            studentService.addDiscipline(discipline);
+        } catch (EntityAlreadyExistsException e) {
+            showErrorAlert(e.getMessage());
+        } catch (SQLException ignored) {}
         updateDisciplinesTableView();
 
         disciplinesDisciplineNameField.clear();
@@ -412,10 +415,20 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleRemoveDisciplineButtonClick() throws SQLException {
-        int disciplineId = Integer.parseInt(disciplinesDisciplineIdField.getText());
-        studentService.removeDiscipline(disciplineId);
-        updateDisciplinesTableView();
-
+        int disciplineId;
+        try {
+            disciplineId = Integer.parseInt(
+                    disciplinesDisciplineIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Discipline ID must be integer");
+            return;
+        }
+        try {
+            studentService.removeDiscipline(disciplineId);
+            updateDisciplinesTableView();
+        } catch (EntityDeletionException e) {
+            showErrorAlert(e.getMessage());
+        }
         disciplinesDisciplineIdField.clear();
     }
 
