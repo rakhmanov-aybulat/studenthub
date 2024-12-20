@@ -44,22 +44,15 @@ public class StudentService {
             InvalidLineFormatException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
-        StringBuilder builder;
         int lineNumber = 0;
-        int i;
         while ((line = reader.readLine()) != null) {
             lineNumber += 1;
-            String[] parts = line.split(" ");
-            if (parts.length < 2) {
+            String[] parts = line.split(",");
+            if (parts.length != 2) {
                 throw new InvalidLineFormatException(lineNumber, line);
             }
-            builder = new StringBuilder();
-            for (i = 0; i < parts.length - 2; i++) {
-                builder.append(parts[i]).append(" ");
-            }
-            builder.append(parts[i]);
-            String fullName = builder.toString();
-            String groupName = parts[parts.length - 1];
+            String fullName = parts[0].trim();
+            String groupName = parts[1].trim();
             Student student = new Student(-1, fullName, groupName);
 
             if (studentExists(student))
@@ -128,7 +121,6 @@ public class StudentService {
                 throw new SQLException("Group not found with name: " + groupName);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
             throw e;
         }
     }

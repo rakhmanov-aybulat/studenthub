@@ -280,7 +280,8 @@ public class StudentHubController implements Initializable {
     private void handleRemoveStudentButtonClick() {
         int studentId;
         try {
-            studentId = Integer.parseInt(studentsStudentIdField.getText());
+            studentId = Integer.parseInt(
+                    studentsStudentIdField.getText().trim());
         } catch (NumberFormatException ignored) {
             showErrorAlert("Student ID must be integer");
             return;
@@ -297,17 +298,16 @@ public class StudentHubController implements Initializable {
         helpDialog.setHeaderText("To import the student list, follow these steps");
         helpDialog.setContentText(
                 "1. Click the 'Import Student List' button.\n" +
-                "2. Select a text file containing the list of students.\n\n" +
-                "The file must meet the following requirements:\n" +
-                "   - Each line in the file represents a student.\n" +
-                "   - Each line should be formatted as follows: 'Full Name GroupName'.\n" +
-                "   - The full name and group name should be separated by spaces.\n" +
-                "   - The last word in each line will be considered the group name.\n" +
-                "   - All other words in the line will be combined to form the full name of the student.\n\n" +
-                "Example:\n" +
-                "   John Doe GroupA\n" +
-                "   Jane Smith GroupB\n\n" +
-                "Ensure that the file is correctly formatted before importing."
+                        "2. Select a CSV file containing the list of students.\n\n" +
+                        "The file must meet the following requirements:\n" +
+                        "   - Each line in the file represents a student.\n" +
+                        "   - Each line should be formatted as follows: 'Full Name,Group Name'.\n" +
+                        "   - The full name and group name should be separated by a comma.\n" +
+                        "   - The full name should be the first field, and the group name should be the second field.\n\n" +
+                        "Example:\n" +
+                        "   John Doe,Group A\n" +
+                        "   Jane Smith,Group B\n\n" +
+                        "Ensure that the file is correctly formatted before importing."
         );
         helpDialog.showAndWait();
     }
@@ -317,7 +317,7 @@ public class StudentHubController implements Initializable {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Student List File");
         fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+                new FileChooser.ExtensionFilter("Text Files", "*.csv"));
         File selectedFile = fileChooser.showOpenDialog(null);
 
         if (selectedFile == null) {
@@ -327,7 +327,6 @@ public class StudentHubController implements Initializable {
         String errorMessage = null;
         try {
             studentService.importStudentsFromFile(selectedFile);
-            updateStudentsTableView();
         } catch (InvalidLineFormatException | GroupNotFoundException e) {
             errorMessage = e.getMessage() +
                     "\n\nPlease correct the errors and try again.";
@@ -338,6 +337,7 @@ public class StudentHubController implements Initializable {
         } finally {
             if (errorMessage != null)
                 showErrorAlert(errorMessage);
+            updateStudentsTableView();
         }
     }
 
