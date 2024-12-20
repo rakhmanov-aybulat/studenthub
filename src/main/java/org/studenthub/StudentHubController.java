@@ -266,11 +266,15 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleAddStudentButtonClick() throws SQLException {
-        String fullName = studentsFullNameField.getText();
-        String groupName = studentsGroupNameChoiceBox.getValue();
+        String fullName = studentsFullNameField.getText().trim();
+        String groupName = studentsGroupNameChoiceBox.getValue().trim();
         Student student = new Student(-1, fullName, groupName);
-        studentService.addStudent(student);
-
+        try {
+            studentService.addStudent(student);
+        } catch (SQLException e) {
+            String errorMessage = "Group not found with name: " + groupName;
+            showErrorAlert(errorMessage);
+        }
         updateStudentsTableView();
         studentsFullNameField.clear();
         studentsGroupNameChoiceBox.getSelectionModel().clearSelection();
