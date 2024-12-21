@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 import javafx.collections.ObservableList;
@@ -50,13 +51,13 @@ public class StudentHubController implements Initializable {
     private TableView<Schedule> scheduleTableView;
 
     @FXML
-    private TextField scheduleGroupIdField;
+    private ChoiceBox<String> scheduleGroupNameChoiceBox;
 
     @FXML
-    private TextField scheduleDisciplineIdField;
+    private ChoiceBox<String> scheduleDisciplineNameChoiceBox;
 
     @FXML
-    private TextField scheduleDateField;
+    private DatePicker scheduleDatePicker;
 
     @FXML
     private TextField scheduleScheduleIdField;
@@ -112,8 +113,10 @@ public class StudentHubController implements Initializable {
         updateStudentsTableView();
         updateGroupsTableView();
         updateDisciplinesTableView();
+        updateScheduleTableView();
 
         updateAllGroupNameChoiceBoxes();
+        updateAllDisciplineNameChoiceBoxes();
     }
 
     private void setupStudentsTableView() {
@@ -135,11 +138,7 @@ public class StudentHubController implements Initializable {
         fullNameColumn.setPrefWidth(300);
         fullNameColumn.setMinWidth(300);
 
-        groupNameColumn.prefWidthProperty().bind(
-                studentsTableView.widthProperty()
-                .subtract(studentIdColumn.widthProperty())
-                .subtract(fullNameColumn.widthProperty())
-        );
+        groupNameColumn.setPrefWidth(150);
         groupNameColumn.setMinWidth(150);
     }
 
@@ -181,17 +180,29 @@ public class StudentHubController implements Initializable {
         scheduleIdColumn.setCellValueFactory(new PropertyValueFactory<>("scheduleId"));
         scheduleTableView.getColumns().add(scheduleIdColumn);
 
-        TableColumn<Schedule, Integer> groupIdColumn = new TableColumn<>("Group ID");
-        groupIdColumn.setCellValueFactory(new PropertyValueFactory<>("groupId"));
-        scheduleTableView.getColumns().add(groupIdColumn);
+        TableColumn<Schedule, String> groupNameColumn = new TableColumn<>("Group Name");
+        groupNameColumn.setCellValueFactory(new PropertyValueFactory<>("groupName"));
+        scheduleTableView.getColumns().add(groupNameColumn);
 
-        TableColumn<Schedule, Integer> disciplineIdColumn = new TableColumn<>("Discipline ID");
-        disciplineIdColumn.setCellValueFactory(new PropertyValueFactory<>("disciplineId"));
-        scheduleTableView.getColumns().add(disciplineIdColumn);
+        TableColumn<Schedule, String> disciplineNameColumn = new TableColumn<>("Discipline Name");
+        disciplineNameColumn.setCellValueFactory(new PropertyValueFactory<>("disciplineName"));
+        scheduleTableView.getColumns().add(disciplineNameColumn);
 
-        TableColumn<Schedule, String> dateColumn = new TableColumn<>("Date");
-        dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+        TableColumn<Schedule, LocalDate> dateColumn = new TableColumn<>("Date");
+        dateColumn.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
         scheduleTableView.getColumns().add(dateColumn);
+
+        scheduleIdColumn.setPrefWidth(110);
+        scheduleIdColumn.setMinWidth(110);
+
+        groupNameColumn.setPrefWidth(150);
+        groupNameColumn.setMinWidth(150);
+
+        disciplineNameColumn.setPrefWidth(220);
+        disciplineNameColumn.setMinWidth(220);
+
+        dateColumn.setPrefWidth(100);
+        dateColumn.setMinWidth(100);
     }
 
     private void setupAttendanceTableView() {
@@ -271,7 +282,7 @@ public class StudentHubController implements Initializable {
         Student student = new Student(-1, fullName, groupName);
         try {
             studentService.addStudent(student);
-        } catch (GroupNotFoundException | EntityAlreadyExistsException e) {
+        } catch (EntityNotFoundException | EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
         } catch (SQLException ignored) {}
 
@@ -361,6 +372,15 @@ public class StudentHubController implements Initializable {
         studentsGroupNameChoiceBox.getItems().clear();
         groups.forEach(group -> {
             studentsGroupNameChoiceBox.getItems().add(group.getGroupName());
+            scheduleGroupNameChoiceBox.getItems().add(group.getGroupName());
+        });
+    }
+
+    private void updateAllDisciplineNameChoiceBoxes() {
+        ObservableList<Discipline> disciplines = studentService.getDisciplinesObservableList();
+        scheduleDisciplineNameChoiceBox.getItems().clear();
+        disciplines.forEach(discipline -> {
+            scheduleDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
         });
     }
 
@@ -411,6 +431,7 @@ public class StudentHubController implements Initializable {
         updateDisciplinesTableView();
 
         disciplinesDisciplineNameField.clear();
+        updateAllDisciplineNameChoiceBoxes();
     }
 
     @FXML
@@ -434,27 +455,38 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleAddScheduleButtonClick() throws SQLException {
-        int groupId = Integer.parseInt(scheduleGroupIdField.getText());
-        int disciplineId = Integer.parseInt(scheduleDisciplineIdField.getText());
-        String date = scheduleDateField.getText();
+        String groupName = scheduleGroupNameChoiceBox.getValue().trim();
+        String disciplineName = scheduleDisciplineNameChoiceBox.getValue().trim();
+        LocalDate date = scheduleDatePicker.getValue();
+        Schedule schedule = new Schedule(-1, groupName, disciplineName, date);
+        try {
+            studentService.addSchedule(schedule);
+        } catch (EntityNotFoundException | EntityAlreadyExistsException e) {
+            showErrorAlert(e.getMessage());
+        } catch (SQLException ignored) {}
 
-        Schedule schedule = new Schedule(-1, groupId, disciplineId, date);
-
-        studentService.addSchedule(schedule);
         updateScheduleTableView();
-
-        scheduleGroupIdField.clear();
-        scheduleDisciplineIdField.clear();
-        scheduleDateField.clear();
+        scheduleGroupNameChoiceBox.getSelectionModel().clearSelection();
+        scheduleDisciplineNameChoiceBox.getSelectionModel().clearSelection();
+        scheduleDatePicker.setValue(null);
     }
 
     @FXML
     private void handleRemoveScheduleButtonClick() throws SQLException {
-        int scheduleId = Integer.parseInt(scheduleGroupIdField.getText());
-        studentService.removeSchedule(scheduleId);
-        updateScheduleTableView();
-
-        scheduleGroupIdField.clear();
+        int scheduleId;
+        try {
+            scheduleId = Integer.parseInt(scheduleScheduleIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Schedule ID must be integer");
+            return;
+        }
+        try {
+            studentService.removeSchedule(scheduleId);
+            updateScheduleTableView();
+        } catch (EntityDeletionException e) {
+            showErrorAlert(e.getMessage());
+        }
+        scheduleScheduleIdField.clear();
     }
 
     @FXML

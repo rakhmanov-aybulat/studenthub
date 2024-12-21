@@ -8,6 +8,7 @@ import org.studenthub.model.*;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 public class StudentService {
     private Repo db;
@@ -16,7 +17,7 @@ public class StudentService {
         this.db = db;
     }
 
-    public void addStudent(Student student) throws GroupNotFoundException,
+    public void addStudent(Student student) throws EntityNotFoundException,
             EntityAlreadyExistsException, SQLException {
         if (studentExists(student)) {
             throw new EntityAlreadyExistsException("Group with name: " +
@@ -43,7 +44,7 @@ public class StudentService {
         int groupId;
         try {
             groupId = getGroupIdByGroupName(student.getGroupName());
-        } catch (GroupNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             return false;
         }
 
@@ -73,7 +74,7 @@ public class StudentService {
 
             try {
                 addStudent(student);
-            } catch (GroupNotFoundException e) {
+            } catch (EntityNotFoundException e) {
                 throw new ImportGroupNotFoundException(groupName, lineNumber , line);
             } catch (EntityAlreadyExistsException e) {
                 continue;
@@ -149,13 +150,14 @@ public class StudentService {
         }
     }
 
-    public int getGroupIdByGroupName(String groupName) throws GroupNotFoundException {
+    public int getGroupIdByGroupName(String groupName) throws EntityNotFoundException {
         String query = "SELECT group_id FROM GROUPS WHERE group_name=?";
         try (ResultSet rs = db.executePreparedQuery(query, groupName)) {
             if (rs.next())
                 return rs.getInt("group_id");
         } catch (SQLException ignored) {}
-        throw new GroupNotFoundException(groupName);
+        throw new EntityNotFoundException(
+                "Group not found with name: " + groupName);
     }
 
     public ObservableList<Discipline> getDisciplinesObservableList() {
@@ -184,16 +186,6 @@ public class StudentService {
         );
     }
 
-    private boolean disciplineExists(Discipline discipline) {
-        String query = "SELECT 1 FROM DISCIPLINES WHERE discipline_name=?";
-        try (ResultSet rs = db.executePreparedQuery(
-                query, discipline.getDisciplineName())) {
-            return rs.next();
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
     public void removeDiscipline(int disciplineId) throws EntityDeletionException {
         try {
             db.executePreparedUpdate(
@@ -206,17 +198,40 @@ public class StudentService {
         }
     }
 
+    private boolean disciplineExists(Discipline discipline) {
+        String query = "SELECT 1 FROM DISCIPLINES WHERE discipline_name=?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, discipline.getDisciplineName())) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public int getDisciplineIdByDisciplineName(String disciplineName) throws EntityNotFoundException {
+        String query = "SELECT discipline_id FROM DISCIPLINES WHERE discipline_name=?";
+        try (ResultSet rs = db.executePreparedQuery(query, disciplineName)) {
+            if (rs.next())
+                return rs.getInt("discipline_id");
+        } catch (SQLException ignored) {}
+        throw new EntityNotFoundException(
+                "Discipline not found with name: " + disciplineName);
+    }
+
     public ObservableList<Schedule> getSchedulesObservableList() {
         ObservableList<Schedule> schedules = FXCollections.observableArrayList();
-        String query = "SELECT schedule_id, group_id, " +
-                "discipline_id, date FROM SCHEDULE";
+        String query = "SELECT s.schedule_id, g.group_name, d.discipline_name, s.date " +
+                "FROM SCHEDULE s " +
+                "JOIN GROUPS g ON s.group_id = g.group_id " +
+                "JOIN DISCIPLINES d ON s.discipline_id = d.discipline_id";
+
         try (ResultSet rs = db.executeQuery(query)) {
             while (rs.next()) {
                 schedules.add(new Schedule(
                         rs.getInt("schedule_id"),
-                        rs.getInt("group_id"),
-                        rs.getInt("discipline_id"),
-                        rs.getString("date")
+                        rs.getString("group_name"),
+                        rs.getString("discipline_name"),
+                        LocalDate.parse(rs.getString("date"))
                 ));
             }
         } catch (Exception e) {
@@ -225,17 +240,47 @@ public class StudentService {
         return schedules;
     }
 
-    public void addSchedule(Schedule schedule) throws SQLException {
+    public void addSchedule(Schedule schedule) throws SQLException, EntityAlreadyExistsException, EntityNotFoundException {
+        if (scheduleExists(schedule)) {
+            throw new EntityAlreadyExistsException("Schedule already exists");
+        }
+        int groupId = getGroupIdByGroupName(schedule.getGroupName());
+        int disciplineId = getDisciplineIdByDisciplineName(schedule.getDisciplineName());
+
         db.executePreparedUpdate(
                 "INSERT INTO SCHEDULE (group_id, discipline_id, date) " +
-                        "VALUES (?, ?, ?)", schedule.getGroupId(),
-                schedule.getDisciplineId(), schedule.getDate()
-        );
+                        "VALUES (?, ?, ?)", groupId, disciplineId, schedule.getDate());
     }
 
-    public void removeSchedule(int scheduleId) throws SQLException {
-        db.executePreparedUpdate(
-                "DELETE FROM SCHEDULE WHERE schedule_id=?", scheduleId);
+    public void removeSchedule(int scheduleId) throws EntityDeletionException {
+        try {
+            db.executePreparedUpdate(
+                    "DELETE FROM SCHEDULE WHERE schedule_id=?", scheduleId);
+        } catch (SQLException e) {
+            throw new EntityDeletionException(
+                    "Cannot delete schedule with ID: " + scheduleId +
+                    ". because it has associations with other entities.");
+        }
+    }
+
+    private boolean scheduleExists(Schedule schedule) {
+        int groupId;
+        int disciplineId;
+        try {
+            groupId = getGroupIdByGroupName(schedule.getGroupName());
+            disciplineId = getDisciplineIdByDisciplineName(schedule.getDisciplineName());
+        } catch (EntityNotFoundException e) {
+            return false;
+        }
+
+        String query = "SELECT 1 FROM SCHEDULE WHERE " +
+                "group_id=? AND discipline_id=? AND date=?";
+        try (ResultSet rs = db.executePreparedQuery(query,
+                groupId, disciplineId, schedule.getDate())) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public ObservableList<Attendance> getAttendancesObservableList() {

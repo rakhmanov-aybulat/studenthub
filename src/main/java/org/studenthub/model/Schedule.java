@@ -1,20 +1,23 @@
 package org.studenthub.model;
 
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+
+import java.time.LocalDate;
 
 public class Schedule {
     private SimpleIntegerProperty scheduleId;
-    private SimpleIntegerProperty groupId;
-    private SimpleIntegerProperty disciplineId;
-    private SimpleStringProperty date;
+    private SimpleStringProperty groupName;
+    private SimpleStringProperty disciplineName;
+    private SimpleObjectProperty<LocalDate> date;
 
-    public Schedule(int scheduleId, int groupId,
-                    int disciplineId, String date) {
+    public Schedule(int scheduleId, String groupName,
+                    String disciplineName, LocalDate date) {
         this.scheduleId = new SimpleIntegerProperty(scheduleId);
-        this.groupId = new SimpleIntegerProperty(groupId);
-        this.disciplineId = new SimpleIntegerProperty(disciplineId);
-        this.date = new SimpleStringProperty(date);
+        this.groupName = new SimpleStringProperty(groupName);
+        this.disciplineName = new SimpleStringProperty(disciplineName);
+        this.date = new SimpleObjectProperty<>(date);
     }
 
     public int getScheduleId() {
@@ -25,27 +28,30 @@ public class Schedule {
         this.scheduleId.set(scheduleId);
     }
 
-    public int getGroupId() {
-        return groupId.get();
+    public String getGroupName() {
+        return groupName.get();
     }
 
-    public void setGroupId(int groupId) {
-        this.groupId.set(groupId);
+    public void setGroupName(String groupName) {
+        this.groupName.set(groupName);
     }
 
-    public int getDisciplineId() {
-        return disciplineId.get();
+    public String getDisciplineName() {
+        return disciplineName.get();
     }
 
-    public void setDisciplineId(int disciplineId) {
-        this.disciplineId.set(disciplineId);
+    public void setDisciplineName(String disciplineName) {
+        this.disciplineName.set(disciplineName);
     }
 
-    public String getDate() {
+    public SimpleObjectProperty<LocalDate> dateProperty() {
+        return date;
+    }
+    public LocalDate getDate() {
         return date.get();
     }
 
-    public void setDate(String date) {
+    public void setDate(LocalDate date) {
         this.date.set(date);
     }
 }
