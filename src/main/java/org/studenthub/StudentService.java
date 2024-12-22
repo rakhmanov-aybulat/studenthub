@@ -246,14 +246,18 @@ public class StudentService {
         db.executePreparedUpdate(query, date, disciplineName, groupName);
     }
 
-    public void removeSchedule(int scheduleId) throws EntityDeletionException {
+    public void removeSchedule(int scheduleId)
+            throws EntityDeletionException, SQLException {
         try {
             db.executePreparedUpdate(
                     "DELETE FROM SCHEDULE WHERE schedule_id=?", scheduleId);
         } catch (SQLException e) {
-            throw new EntityDeletionException(
-                    "Cannot delete schedule with ID: " + scheduleId +
-                    ". because it has associations with other entities.");
+            if (e.getErrorCode() == 19) {
+                throw new EntityDeletionException(
+                        "Cannot delete schedule with ID: " + scheduleId +
+                        ". because it has associations with other entities.");
+            }
+            throw e;
         }
     }
 
@@ -341,15 +345,18 @@ public class StudentService {
 
     public ObservableList<PracticalWork> getPracticalWorksObservableList() {
         ObservableList<PracticalWork> practicalWorks = FXCollections.observableArrayList();
-        String query = "SELECT practical_work_id, student_id, " +
-                "discipline_id, date, grade FROM PRACTICALWORKS";
+        String query = "SELECT pw.practical_work_id, s.full_name," +
+                "d.discipline_name, pw.date, pw.grade " +
+                "FROM PRACTICALWORKS pw " +
+                "JOIN STUDENTS s ON pw.student_id = s.student_id " +
+                "JOIN DISCIPLINES d ON pw.discipline_id = d.discipline_id";
         try (ResultSet rs = db.executeQuery(query)) {
             while (rs.next()) {
                 practicalWorks.add(new PracticalWork(
                         rs.getInt("practical_work_id"),
-                        rs.getInt("student_id"),
-                        rs.getInt("discipline_id"),
-                        rs.getString("date"),
+                        rs.getString("full_name"),
+                        rs.getString("discipline_name"),
+                        LocalDate.parse(rs.getString("date")),
                         rs.getInt("grade")
                 ));
             }
@@ -357,20 +364,36 @@ public class StudentService {
         return practicalWorks;
     }
 
-    public void addPracticalWork(PracticalWork practicalWork) throws SQLException {
-        db.executePreparedUpdate(
-                "INSERT INTO PRACTICALWORKS (student_id, discipline_id, " +
-                        "date, grade) VALUES (?, ?, ?, ?)",
-                practicalWork.getStudentId(), practicalWork.getDisciplineId(),
-                practicalWork.getDate(), practicalWork.getGrade()
-        );
+    public void addPracticalWork(int studentId, String disciplineName, LocalDate date, int grade)
+            throws EntityAlreadyExistsException, EntityNotFoundException, SQLException {
+        if (practicalWorkExists(studentId, disciplineName, date)) {
+            throw new EntityAlreadyExistsException(
+                    "Practical work already exists.");
+        }
+        String query = "INSERT INTO PRACTICALWORKS " +
+                "(student_id, discipline_id, date, grade) " +
+                "SELECT ?, d.discipline_id, ?, ? " +
+                "FROM DISCIPLINES d " +
+                "WHERE d.discipline_name = ?";
+        db.executePreparedUpdate(query, studentId, date, grade, disciplineName);
     }
 
     public void removePracticalWork(int practicalWorkId) throws SQLException {
-        db.executePreparedUpdate(
-                "DELETE FROM PRACTICALWORKS WHERE practical_work_id=?",
-                practicalWorkId
-        );
+        String query = "DELETE FROM PRACTICALWORKS WHERE practical_work_id=?";
+        db.executePreparedUpdate(query, practicalWorkId);
     }
 
+    public boolean practicalWorkExists(int studentId, String disciplineName, LocalDate date) {
+        String query = "SELECT 1 FROM PRACTICALWORKS pw " +
+                "JOIN DISCIPLINES d ON pw.discipline_id = d.discipline_id " +
+                "WHERE pw.student_id = ? AND " +
+                "d.discipline_name = ? AND " +
+                "pw.date = ?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, studentId, disciplineName, date)) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
 }

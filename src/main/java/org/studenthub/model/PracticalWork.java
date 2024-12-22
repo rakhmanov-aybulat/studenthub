@@ -1,21 +1,24 @@
 package org.studenthub.model;
 
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+
+import java.time.LocalDate;
 
 public class PracticalWork {
     private SimpleIntegerProperty practicalWorkId;
-    private SimpleIntegerProperty studentId;
-    private SimpleIntegerProperty disciplineId;
-    private SimpleStringProperty date;
+    private SimpleStringProperty studentFullName;
+    private SimpleStringProperty disciplineName;
+    private SimpleObjectProperty<LocalDate> date;
     private SimpleIntegerProperty grade;
 
-    public PracticalWork(int practicalWorkId, int studentId,
-                         int disciplineId, String date, int grade) {
+    public PracticalWork(int practicalWorkId, String studentName,
+                         String disciplineName, LocalDate date, int grade) {
         this.practicalWorkId = new SimpleIntegerProperty(practicalWorkId);
-        this.studentId = new SimpleIntegerProperty(studentId);
-        this.disciplineId = new SimpleIntegerProperty(disciplineId);
-        this.date = new SimpleStringProperty(date);
+        this.studentFullName = new SimpleStringProperty(studentName);
+        this.disciplineName = new SimpleStringProperty(disciplineName);
+        this.date = new SimpleObjectProperty<>(date);
         this.grade = new SimpleIntegerProperty(grade);
     }
 
@@ -27,27 +30,31 @@ public class PracticalWork {
         this.practicalWorkId.set(practicalWorkId);
     }
 
-    public int getStudentId() {
-        return studentId.get();
+    public String getStudentFullName() {
+        return studentFullName.get();
     }
 
-    public void setStudentId(int studentId) {
-        this.studentId.set(studentId);
+    public void setStudentFullName(String studentFullName) {
+        this.studentFullName.set(studentFullName);
     }
 
-    public int getDisciplineId() {
-        return disciplineId.get();
+    public String getDisciplineName() {
+        return disciplineName.get();
     }
 
-    public void setDisciplineId(int disciplineId) {
-        this.disciplineId.set(disciplineId);
+    public void setDisciplineName(String disciplineName) {
+        this.disciplineName.set(disciplineName);
     }
 
-    public String getDate() {
+    public SimpleObjectProperty<LocalDate> dateProperty() {
+        return date;
+    }
+
+    public LocalDate getDate() {
         return date.get();
     }
 
-    public void setDate(String date) {
+    public void setDate(LocalDate date) {
         this.date.set(date);
     }
 

@@ -378,12 +378,12 @@
                                        <children>
                                           <Label text="Student ID" />
                                           <TextField fx:id="practicalWorksStudentIdField" GridPane.columnIndex="1" />
-                                          <Label text="Discipline ID" GridPane.rowIndex="1" />
-                                          <TextField fx:id="practicalWorksDisciplineIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <Label text="Discipline Name" GridPane.rowIndex="1" />
                                           <Label text="Date" GridPane.rowIndex="2" />
-                                          <TextField fx:id="practicalWorksDateField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                           <Label text="Grade" GridPane.rowIndex="3" />
-                                          <TextField fx:id="practicalWorksGradeField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <DatePicker fx:id="practicalWorksDatePicker" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <ChoiceBox fx:id="practicalWorksDisciplineNameChoiceBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                          <ChoiceBox fx:id="practicalWorksGradeChoiceBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                                        </children>
                                     </GridPane>
                                     <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddPracticalWorkButtonClick" text="Add Practical Work" />

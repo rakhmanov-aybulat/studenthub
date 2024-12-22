@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -84,13 +85,13 @@ public class StudentHubController implements Initializable {
     private TextField practicalWorksStudentIdField;
 
     @FXML
-    private TextField practicalWorksDisciplineIdField;
+    private ChoiceBox<String> practicalWorksDisciplineNameChoiceBox;
 
     @FXML
-    private TextField practicalWorksDateField;
+    private DatePicker practicalWorksDatePicker;
 
     @FXML
-    private TextField practicalWorksGradeField;
+    private ChoiceBox<String> practicalWorksGradeChoiceBox;
 
     @FXML
     private TextField practicalWorksPracticalWorkIdField;
@@ -115,9 +116,11 @@ public class StudentHubController implements Initializable {
         updateDisciplinesTableView();
         updateScheduleTableView();
         updateAttendanceTableView();
+        updatePracticalWorksTableView();
 
         updateAllGroupNameChoiceBoxes();
         updateAllDisciplineNameChoiceBoxes();
+        updateAllGradeChoiceBoxes();
     }
 
     private void setupStudentsTableView() {
@@ -248,21 +251,36 @@ public class StudentHubController implements Initializable {
         practicalWorkIdColumn.setCellValueFactory(new PropertyValueFactory<>("practicalWorkId"));
         practicalWorksTableView.getColumns().add(practicalWorkIdColumn);
 
-        TableColumn<PracticalWork, Integer> studentIdColumn = new TableColumn<>("Student ID");
-        studentIdColumn.setCellValueFactory(new PropertyValueFactory<>("studentId"));
-        practicalWorksTableView.getColumns().add(studentIdColumn);
+        TableColumn<PracticalWork, String> studentFullNameColumn = new TableColumn<>("Student Full Name");
+        studentFullNameColumn.setCellValueFactory(new PropertyValueFactory<>("studentFullName"));
+        practicalWorksTableView.getColumns().add(studentFullNameColumn);
 
-        TableColumn<PracticalWork, Integer> disciplineIdColumn = new TableColumn<>("Discipline ID");
-        disciplineIdColumn.setCellValueFactory(new PropertyValueFactory<>("disciplineId"));
-        practicalWorksTableView.getColumns().add(disciplineIdColumn);
+        TableColumn<PracticalWork, String> disciplineNameColumn = new TableColumn<>("Discipline Name");
+        disciplineNameColumn.setCellValueFactory(new PropertyValueFactory<>("disciplineName"));
+        practicalWorksTableView.getColumns().add(disciplineNameColumn);
 
-        TableColumn<PracticalWork, String> dateColumn = new TableColumn<>("Date");
-        dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+        TableColumn<PracticalWork, LocalDate> dateColumn = new TableColumn<>("Date");
+        dateColumn.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
         practicalWorksTableView.getColumns().add(dateColumn);
 
         TableColumn<PracticalWork, Integer> gradeColumn = new TableColumn<>("Grade");
         gradeColumn.setCellValueFactory(new PropertyValueFactory<>("grade"));
         practicalWorksTableView.getColumns().add(gradeColumn);
+
+        practicalWorkIdColumn.setPrefWidth(150);
+        practicalWorkIdColumn.setMinWidth(150);
+
+        studentFullNameColumn.setPrefWidth(180);
+        studentFullNameColumn.setMinWidth(180);
+
+        disciplineNameColumn.setPrefWidth(130);
+        disciplineNameColumn.setMinWidth(130);
+
+        dateColumn.setPrefWidth(90);
+        dateColumn.setMinWidth(90);
+
+        gradeColumn.setPrefWidth(60);
+        gradeColumn.setMinWidth(60);
     }
 
     private void updateStudentsTableView() {
@@ -410,9 +428,19 @@ public class StudentHubController implements Initializable {
 
     private void updateAllDisciplineNameChoiceBoxes() {
         scheduleDisciplineNameChoiceBox.getItems().clear();
+        practicalWorksDisciplineNameChoiceBox.getItems().clear();
         ObservableList<Discipline> disciplines = studentService.getDisciplinesObservableList();
         disciplines.forEach(discipline -> {
             scheduleDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
+            practicalWorksDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
+        });
+    }
+
+    private void updateAllGradeChoiceBoxes() {
+        practicalWorksGradeChoiceBox.getItems().clear();
+        ObservableList<Integer> grades = FXCollections.observableArrayList(1, 2, 3, 4, 5);
+        grades.forEach(grade -> {
+            practicalWorksGradeChoiceBox.getItems().add(grade.toString());
         });
     }
 
@@ -512,7 +540,7 @@ public class StudentHubController implements Initializable {
         }
         LocalDate date = scheduleDatePicker.getValue();
         if (date == null) {
-            showErrorAlert("You can’t leave Date field blank.");
+            showErrorAlert("Invalid Date format.");
             return;
         }
         try {
@@ -531,7 +559,8 @@ public class StudentHubController implements Initializable {
     private void handleRemoveScheduleButtonClick() {
         int scheduleId;
         try {
-            scheduleId = Integer.parseInt(scheduleScheduleIdField.getText().trim());
+            scheduleId = Integer.parseInt(
+                    scheduleScheduleIdField.getText().trim());
         } catch (NumberFormatException e) {
             showErrorAlert("Schedule ID must be integer");
             return;
@@ -541,6 +570,8 @@ public class StudentHubController implements Initializable {
             updateScheduleTableView();
         } catch (EntityDeletionException e) {
             showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong.");
         }
         scheduleScheduleIdField.clear();
     }
@@ -549,7 +580,6 @@ public class StudentHubController implements Initializable {
     private void handleAddAttendanceButtonClick() {
         boolean present = attendancePresentRadioButton.isSelected();
         int studentId;
-        int scheduleId;
         try {
             studentId = Integer.parseInt(
                     attendanceStudentIdField.getText().trim());
@@ -557,6 +587,7 @@ public class StudentHubController implements Initializable {
             showErrorAlert("Student ID must be integer");
             return;
         }
+        int scheduleId;
         try {
             scheduleId = Integer.parseInt(
                     attendanceScheduleIdField.getText().trim());
@@ -597,30 +628,71 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddPracticalWorkButtonClick() throws SQLException {
-        int studentId = Integer.parseInt(practicalWorksStudentIdField.getText());
-        int disciplineId = Integer.parseInt(practicalWorksDisciplineIdField.getText());
-        String date = practicalWorksDateField.getText();
-        int grade = Integer.parseInt(practicalWorksGradeField.getText());
-
-        PracticalWork practicalWork = new PracticalWork(-1, studentId, disciplineId, date, grade);
-
-        studentService.addPracticalWork(practicalWork);
+    private void handleAddPracticalWorkButtonClick() {
+        int studentId;
+        try {
+            studentId = Integer.parseInt(
+                    practicalWorksStudentIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Student ID must be integer.");
+            return;
+        }
+        String disciplineName = practicalWorksDisciplineNameChoiceBox.getValue();
+        if (disciplineName == null) {
+            showErrorAlert("You can’t leave Discipline Name field blank.");
+            return;
+        }
+        LocalDate date = practicalWorksDatePicker.getValue();
+        if (date == null) {
+            showErrorAlert("Invalid Date format.");
+            return;
+        }
+        int grade;
+        try {
+            String gradeString = practicalWorksGradeChoiceBox.getValue();
+            if (gradeString == null) {
+                showErrorAlert("You can’t leave Grade field blank.");
+                return;
+            }
+            grade = Integer.parseInt(gradeString);
+            if (grade < 1 | grade > 5) {
+                showErrorAlert("Grade must be between 1 and 5.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            showErrorAlert("Student ID must be integer.");
+            return;
+        }
+        try {
+            studentService.addPracticalWork(studentId, disciplineName, date, grade);
+        } catch (EntityNotFoundException | EntityAlreadyExistsException e) {
+            showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong.");
+        }
         updatePracticalWorksTableView();
-
         practicalWorksStudentIdField.clear();
-        practicalWorksDisciplineIdField.clear();
-        practicalWorksDateField.clear();
-        practicalWorksGradeField.clear();
+        practicalWorksGradeChoiceBox.getSelectionModel().clearSelection();
+        practicalWorksDisciplineNameChoiceBox.getSelectionModel().clearSelection();
+        practicalWorksDatePicker.setValue(null);
     }
 
     @FXML
-    private void handleRemovePracticalWorkButtonClick() throws SQLException {
-        int practicalWorkId = Integer.parseInt(practicalWorksStudentIdField.getText());
-        studentService.removePracticalWork(practicalWorkId);
-        updatePracticalWorksTableView();
-
-        practicalWorksStudentIdField.clear();
+    private void handleRemovePracticalWorkButtonClick() {
+        int practicalWorkId;
+        try {
+            practicalWorkId = Integer.parseInt(
+                    practicalWorksPracticalWorkIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Practical Work ID must be an integer");
+            return;
+        }
+        try {
+            studentService.removePracticalWork(practicalWorkId);
+            updatePracticalWorksTableView();
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong.");
+        }
+        practicalWorksPracticalWorkIdField.clear();
     }
-
 }
