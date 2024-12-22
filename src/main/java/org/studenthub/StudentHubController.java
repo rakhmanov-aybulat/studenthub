@@ -95,7 +95,7 @@ public class StudentHubController implements Initializable {
     @FXML
     private TextField practicalWorksPracticalWorkIdField;
 
-    private StudentService studentService;
+    private final StudentService studentService;
 
     public StudentHubController(StudentService studentService) {
         this.studentService = studentService;
@@ -275,22 +275,22 @@ public class StudentHubController implements Initializable {
         groupsTableView.setItems(groups);
     }
 
-    public void updateDisciplinesTableView() {
+    private void updateDisciplinesTableView() {
         ObservableList<Discipline> disciplines = studentService.getDisciplinesObservableList();
         disciplinesTableView.setItems(disciplines);
     }
 
-    public void updateScheduleTableView() {
+    private void updateScheduleTableView() {
         ObservableList<Schedule> schedules = studentService.getSchedulesObservableList();
         scheduleTableView.setItems(schedules);
     }
 
-    public void updateAttendanceTableView() {
+    private void updateAttendanceTableView() {
         ObservableList<Attendance> attendances = studentService.getAttendancesObservableList();
         attendanceTableView.setItems(attendances);
     }
 
-    public void updatePracticalWorksTableView() {
+    private void updatePracticalWorksTableView() {
         ObservableList<PracticalWork> practicalWorks = studentService.getPracticalWorksObservableList();
         practicalWorksTableView.setItems(practicalWorks);
     }
@@ -399,8 +399,9 @@ public class StudentHubController implements Initializable {
     }
 
     private void updateAllGroupNameChoiceBoxes() {
-        ObservableList<Group> groups = studentService.getGroupsObservableList();
         studentsGroupNameChoiceBox.getItems().clear();
+        scheduleGroupNameChoiceBox.getItems().clear();
+        ObservableList<Group> groups = studentService.getGroupsObservableList();
         groups.forEach(group -> {
             studentsGroupNameChoiceBox.getItems().add(group.getGroupName());
             scheduleGroupNameChoiceBox.getItems().add(group.getGroupName());
@@ -408,8 +409,8 @@ public class StudentHubController implements Initializable {
     }
 
     private void updateAllDisciplineNameChoiceBoxes() {
-        ObservableList<Discipline> disciplines = studentService.getDisciplinesObservableList();
         scheduleDisciplineNameChoiceBox.getItems().clear();
+        ObservableList<Discipline> disciplines = studentService.getDisciplinesObservableList();
         disciplines.forEach(discipline -> {
             scheduleDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
         });
@@ -418,12 +419,17 @@ public class StudentHubController implements Initializable {
     @FXML
     private void handleAddGroupButtonClick() {
         String groupName = groupsGroupNameField.getText().trim();
-        Group group = new Group(-1, groupName);
+        if (groupName.isBlank()) {
+            showErrorAlert("Group Name must be filled out.");
+            return;
+        }
         try {
-            studentService.addGroup(group);
+            studentService.addGroup(groupName);
         } catch (EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
-        } catch (SQLException ignored) {}
+        } catch (SQLException ignored) {
+            showErrorAlert("Something went wrong.");
+        }
 
         updateGroupsTableView();
         groupsGroupNameField.clear();
@@ -442,31 +448,36 @@ public class StudentHubController implements Initializable {
         try {
             studentService.removeGroup(groupId);
             updateGroupsTableView();
+            updateAllGroupNameChoiceBoxes();
         } catch (EntityDeletionException e) {
             showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong.");
         }
         groupsGroupIdField.clear();
     }
 
-
     @FXML
-    private void handleAddDisciplineButtonClick() throws SQLException {
+    private void handleAddDisciplineButtonClick() {
         String disciplineName = disciplinesDisciplineNameField.getText().trim();
-        Discipline discipline = new Discipline(-1, disciplineName);
-
+        if (disciplineName.isBlank()) {
+            showErrorAlert("Discipline Name must be filled out.");
+            return;
+        }
         try {
-            studentService.addDiscipline(discipline);
+            studentService.addDiscipline(disciplineName);
         } catch (EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
-        } catch (SQLException ignored) {}
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong");
+        }
         updateDisciplinesTableView();
-
         disciplinesDisciplineNameField.clear();
         updateAllDisciplineNameChoiceBoxes();
     }
 
     @FXML
-    private void handleRemoveDisciplineButtonClick() throws SQLException {
+    private void handleRemoveDisciplineButtonClick() {
         int disciplineId;
         try {
             disciplineId = Integer.parseInt(
@@ -478,20 +489,34 @@ public class StudentHubController implements Initializable {
         try {
             studentService.removeDiscipline(disciplineId);
             updateDisciplinesTableView();
+            updateAllDisciplineNameChoiceBoxes();
         } catch (EntityDeletionException e) {
             showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong");
         }
         disciplinesDisciplineIdField.clear();
     }
 
     @FXML
-    private void handleAddScheduleButtonClick() throws SQLException {
-        String groupName = scheduleGroupNameChoiceBox.getValue().trim();
-        String disciplineName = scheduleDisciplineNameChoiceBox.getValue().trim();
+    private void handleAddScheduleButtonClick() {
+        String groupName = scheduleGroupNameChoiceBox.getValue();
+        if (groupName == null) {
+            showErrorAlert("You can’t leave Group Name field blank.");
+            return;
+        }
+        String disciplineName = scheduleDisciplineNameChoiceBox.getValue();
+        if (disciplineName == null) {
+            showErrorAlert("You can’t leave Discipline Name field blank.");
+            return;
+        }
         LocalDate date = scheduleDatePicker.getValue();
-        Schedule schedule = new Schedule(-1, groupName, disciplineName, date);
+        if (date == null) {
+            showErrorAlert("You can’t leave Date field blank.");
+            return;
+        }
         try {
-            studentService.addSchedule(schedule);
+            studentService.addSchedule(groupName, disciplineName, date);
         } catch (EntityNotFoundException | EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
         } catch (SQLException ignored) {}
@@ -503,7 +528,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleRemoveScheduleButtonClick() throws SQLException {
+    private void handleRemoveScheduleButtonClick() {
         int scheduleId;
         try {
             scheduleId = Integer.parseInt(scheduleScheduleIdField.getText().trim());
@@ -521,7 +546,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleAddAttendanceButtonClick() throws SQLException {
+    private void handleAddAttendanceButtonClick() {
         boolean present = attendancePresentRadioButton.isSelected();
         int studentId;
         int scheduleId;
@@ -555,7 +580,7 @@ public class StudentHubController implements Initializable {
     }
 
     @FXML
-    private void handleRemoveAttendanceButtonClick() throws SQLException {
+    private void handleRemoveAttendanceButtonClick() {
         int attendanceId;
         try {
             attendanceId = Integer.parseInt(

@@ -11,13 +11,14 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class StudentService {
-    private Repo db;
+    private final Repo db;
 
     public StudentService(Repo db) {
         this.db = db;
     }
 
-    public void addStudent(String fullName, String groupName ) throws EntityNotFoundException,
+    public void addStudent(String fullName, String groupName)
+            throws EntityNotFoundException,
             EntityAlreadyExistsException, SQLException {
         if (studentExists(fullName, groupName)) {
             throw new EntityAlreadyExistsException(
@@ -41,9 +42,6 @@ public class StudentService {
         try {
             db.executePreparedUpdate(query, studentId);
         } catch (SQLException e) {
-            System.out.println(e.getSQLState());
-            System.out.println(e.getErrorCode());
-            System.out.println(e.getMessage());
             if (e.getErrorCode() == 19) {
                 throw new EntityDeletionException(
                         "Cannot delete student with ID: " + studentId +
@@ -74,7 +72,8 @@ public class StudentService {
         }
     }
 
-    public void importStudentsFromFile(File file) throws ImportGroupNotFoundException,
+    public void importStudentsFromFile(File file)
+            throws ImportGroupNotFoundException,
             ImportInvalidLineFormatException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -130,25 +129,29 @@ public class StudentService {
         return groups;
     }
 
-    public void addGroup(Group group)
+    public void addGroup(String groupName)
             throws EntityAlreadyExistsException, SQLException {
-        if (groupExists(group.getGroupName()))
-            throw new EntityAlreadyExistsException("Group with name: " +
-                    group.getGroupName() + " already exists");
+        if (groupExists(groupName)) {
+            throw new EntityAlreadyExistsException(
+                    "Group with name: " + groupName + " already exists");
+        }
 
         db.executePreparedUpdate(
-                "INSERT INTO GROUPS (group_name) VALUES (?)",
-                group.getGroupName());
+                "INSERT INTO GROUPS (group_name) VALUES (?)", groupName);
     }
 
-    public void removeGroup(int groupId) throws EntityDeletionException {
+    public void removeGroup(int groupId)
+            throws EntityDeletionException, SQLException {
+        String query = "DELETE FROM GROUPS WHERE group_id=?";
         try {
-            db.executePreparedUpdate(
-                    "DELETE FROM GROUPS WHERE group_id=?", groupId);
+            db.executePreparedUpdate(query, groupId);
         } catch (SQLException e) {
-            throw new EntityDeletionException(
-                    "Cannot delete group with ID: " + groupId +
-                    ". because it has associations with other entities.");
+            if (e.getErrorCode() == 19) {
+                throw new EntityDeletionException(
+                        "Cannot delete group with ID: " + groupId +
+                        ". because it has associations with other entities.");
+            }
+            throw e;
         }
     }
 
@@ -161,16 +164,6 @@ public class StudentService {
         }
     }
 
-    public int getGroupIdByGroupName(String groupName) throws EntityNotFoundException {
-        String query = "SELECT group_id FROM GROUPS WHERE group_name=?";
-        try (ResultSet rs = db.executePreparedQuery(query, groupName)) {
-            if (rs.next())
-                return rs.getInt("group_id");
-        } catch (SQLException ignored) {}
-        throw new EntityNotFoundException(
-                "Group not found with name: " + groupName);
-    }
-
     public ObservableList<Discipline> getDisciplinesObservableList() {
         ObservableList<Discipline> disciplines = FXCollections.observableArrayList();
         String query = "SELECT discipline_id, discipline_name FROM DISCIPLINES";
@@ -181,53 +174,44 @@ public class StudentService {
                         rs.getString("discipline_name")
                 ));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return disciplines;
     }
 
-    public void addDiscipline(Discipline discipline) throws SQLException, EntityAlreadyExistsException {
-        if (disciplineExists(discipline))
+    public void addDiscipline(String disciplineName)
+            throws EntityAlreadyExistsException, SQLException {
+        if (disciplineExists(disciplineName)) {
             throw new EntityAlreadyExistsException("Discipline with name: " +
-                    discipline.getDisciplineName() + " already exists");
-        db.executePreparedUpdate(
-                "INSERT INTO DISCIPLINES (discipline_name) VALUES (?)",
-                discipline.getDisciplineName()
-        );
+                    disciplineName + " already exists");
+        }
+        String query = "INSERT INTO DISCIPLINES (discipline_name) VALUES (?)";
+        db.executePreparedUpdate(query, disciplineName);
     }
 
-    public void removeDiscipline(int disciplineId) throws EntityDeletionException {
+    public void removeDiscipline(int disciplineId)
+            throws EntityDeletionException, SQLException {
+        String query = "DELETE FROM DISCIPLINES WHERE discipline_id=?";
         try {
-            db.executePreparedUpdate(
-                    "DELETE FROM DISCIPLINES WHERE discipline_id=?",
-                    disciplineId);
+            db.executePreparedUpdate(query, disciplineId);
         } catch (SQLException e) {
-            throw new EntityDeletionException(
-                    "Cannot delete discipline with ID: " + disciplineId +
-                            ". because it has associations with other entities.");
+            if (e.getErrorCode() == 19) {
+                throw new EntityDeletionException(
+                        "Cannot delete discipline with ID: " + disciplineId +
+                        ". because it has associations with other entities.");
+            }
+            throw e;
         }
     }
 
-    private boolean disciplineExists(Discipline discipline) {
+    public boolean disciplineExists(String disciplineName) {
         String query = "SELECT 1 FROM DISCIPLINES WHERE discipline_name=?";
-        try (ResultSet rs = db.executePreparedQuery(
-                query, discipline.getDisciplineName())) {
+        try (ResultSet rs = db.executePreparedQuery(query, disciplineName)) {
             return rs.next();
         } catch (SQLException e) {
             return false;
         }
     }
 
-    public int getDisciplineIdByDisciplineName(String disciplineName) throws EntityNotFoundException {
-        String query = "SELECT discipline_id FROM DISCIPLINES WHERE discipline_name=?";
-        try (ResultSet rs = db.executePreparedQuery(query, disciplineName)) {
-            if (rs.next())
-                return rs.getInt("discipline_id");
-        } catch (SQLException ignored) {}
-        throw new EntityNotFoundException(
-                "Discipline not found with name: " + disciplineName);
-    }
 
     public ObservableList<Schedule> getSchedulesObservableList() {
         ObservableList<Schedule> schedules = FXCollections.observableArrayList();
@@ -245,22 +229,21 @@ public class StudentService {
                         LocalDate.parse(rs.getString("date"))
                 ));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return schedules;
     }
 
-    public void addSchedule(Schedule schedule) throws SQLException, EntityAlreadyExistsException, EntityNotFoundException {
-        if (scheduleExists(schedule)) {
-            throw new EntityAlreadyExistsException("Schedule already exists");
+    public void addSchedule(String groupName, String disciplineName, LocalDate date)
+            throws EntityAlreadyExistsException, EntityNotFoundException, SQLException {
+        if (scheduleExists(groupName, disciplineName, date)) {
+            throw new EntityAlreadyExistsException("Schedule already exists.");
         }
-        int groupId = getGroupIdByGroupName(schedule.getGroupName());
-        int disciplineId = getDisciplineIdByDisciplineName(schedule.getDisciplineName());
-
-        db.executePreparedUpdate(
-                "INSERT INTO SCHEDULE (group_id, discipline_id, date) " +
-                        "VALUES (?, ?, ?)", groupId, disciplineId, schedule.getDate());
+        String query = "INSERT INTO SCHEDULE (group_id, discipline_id, date) " +
+                "SELECT g.group_id, d.discipline_id, ? " +
+                "FROM GROUPS g " +
+                "JOIN DISCIPLINES d ON d.discipline_name = ? " +
+                "WHERE g.group_name = ?";
+        db.executePreparedUpdate(query, date, disciplineName, groupName);
     }
 
     public void removeSchedule(int scheduleId) throws EntityDeletionException {
@@ -274,7 +257,7 @@ public class StudentService {
         }
     }
 
-    private boolean scheduleExists(int scheduleId) {
+    public boolean scheduleExists(int scheduleId) {
         String query = "SELECT 1 FROM SCHEDULE WHERE schedule_id=?";
         try (ResultSet rs = db.executePreparedQuery(query, scheduleId)) {
             return rs.next();
@@ -283,20 +266,14 @@ public class StudentService {
         }
     }
 
-    private boolean scheduleExists(Schedule schedule) {
-        int groupId;
-        int disciplineId;
-        try {
-            groupId = getGroupIdByGroupName(schedule.getGroupName());
-            disciplineId = getDisciplineIdByDisciplineName(schedule.getDisciplineName());
-        } catch (EntityNotFoundException e) {
-            return false;
-        }
-
-        String query = "SELECT 1 FROM SCHEDULE WHERE " +
-                "group_id=? AND discipline_id=? AND date=?";
-        try (ResultSet rs = db.executePreparedQuery(query,
-                groupId, disciplineId, schedule.getDate())) {
+    public boolean scheduleExists(
+            String groupName, String disciplineName, LocalDate date) {
+        String query = "SELECT 1 FROM SCHEDULE s " +
+                "JOIN GROUPS g ON s.group_id = g.group_id " +
+                "JOIN DISCIPLINES d ON s.discipline_id = d.discipline_id " +
+                "WHERE g.group_name = ? AND d.discipline_name = ? AND s.date = ?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, groupName, disciplineName, date)) {
             return rs.next();
         } catch (SQLException e) {
             return false;
@@ -321,13 +298,13 @@ public class StudentService {
                         rs.getBoolean("present")
                 ));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return attendances;
     }
 
-    public void addAttendance(int studentId, int scheduleId, boolean present) throws SQLException, EntityNotFoundException, EntityAlreadyExistsException {
+    public void addAttendance(int studentId, int scheduleId, boolean present)
+            throws EntityAlreadyExistsException,
+            EntityNotFoundException, SQLException {
         if (attendanceExists(studentId, scheduleId)) {
             throw new EntityAlreadyExistsException("Attendance already exists");
         }
@@ -376,9 +353,7 @@ public class StudentService {
                         rs.getInt("grade")
                 ));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return practicalWorks;
     }
 
