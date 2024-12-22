@@ -40,6 +40,15 @@ public class StudentService {
         }
     }
 
+    public boolean studentExists(int studentId) {
+        String query = "SELECT 1 FROM STUDENTS WHERE student_id=?";
+        try (ResultSet rs = db.executePreparedQuery(query, studentId)) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public boolean studentExists(Student student) {
         int groupId;
         try {
@@ -263,6 +272,15 @@ public class StudentService {
         }
     }
 
+    private boolean scheduleExists(int scheduleId) {
+        String query = "SELECT 1 FROM SCHEDULE WHERE schedule_id=?";
+        try (ResultSet rs = db.executePreparedQuery(query, scheduleId)) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     private boolean scheduleExists(Schedule schedule) {
         int groupId;
         int disciplineId;
@@ -285,14 +303,19 @@ public class StudentService {
 
     public ObservableList<Attendance> getAttendancesObservableList() {
         ObservableList<Attendance> attendances = FXCollections.observableArrayList();
-        String query = "SELECT attendance_id, student_id, " +
-                "schedule_id, present FROM ATTENDANCE";
+        String query = "SELECT a.attendance_id, s.full_name, d.discipline_name, sc.date, a.present " +
+                "FROM ATTENDANCE a " +
+                "JOIN STUDENTS s ON a.student_id = s.student_id " +
+                "JOIN SCHEDULE sc ON a.schedule_id = sc.schedule_id " +
+                "JOIN GROUPS g ON sc.group_id = g.group_id " +
+                "JOIN DISCIPLINES d ON sc.discipline_id = d.discipline_id";
         try (ResultSet rs = db.executeQuery(query)) {
             while (rs.next()) {
                 attendances.add(new Attendance(
                         rs.getInt("attendance_id"),
-                        rs.getInt("student_id"),
-                        rs.getInt("schedule_id"),
+                        rs.getString("full_name"),
+                        rs.getString("discipline_name"),
+                        LocalDate.parse(rs.getString("date")),
                         rs.getBoolean("present")
                 ));
             }
@@ -302,17 +325,40 @@ public class StudentService {
         return attendances;
     }
 
-    public void addAttendance(Attendance attendance) throws SQLException {
+    public void addAttendance(int studentId, int scheduleId, boolean present) throws SQLException, EntityNotFoundException, EntityAlreadyExistsException {
+        if (!studentExists(studentId)) {
+            throw new EntityNotFoundException(
+                    "Student not found with id: " + studentId);
+        }
+        if (!scheduleExists(scheduleId)) {
+            throw new EntityNotFoundException(
+                    "Schedule not found with id: " + scheduleId);
+        }
+        if (attendanceExists(studentId, scheduleId)) {
+            throw new EntityAlreadyExistsException("Attendance already exists");
+        }
+
+
         db.executePreparedUpdate(
                 "INSERT INTO ATTENDANCE (student_id, schedule_id, present) " +
-                        "VALUES (?, ?, ?)", attendance.getStudentId(),
-                attendance.getScheduleId(), attendance.isPresent());
+                        "VALUES (?, ?, ?)", studentId, scheduleId, present);
     }
 
     public void removeAttendance(int attendanceId) throws SQLException {
         db.executePreparedUpdate(
                 "DELETE FROM ATTENDANCE WHERE attendance_id=?;",
                 attendanceId);
+    }
+
+    public boolean attendanceExists(int studentId, int scheduleId) {
+        String query = "SELECT 1 FROM ATTENDANCE WHERE " +
+                "student_id=? AND schedule_id=?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, studentId, scheduleId)) {
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public ObservableList<PracticalWork> getPracticalWorksObservableList() {
@@ -350,4 +396,5 @@ public class StudentService {
                 practicalWorkId
         );
     }
+
 }

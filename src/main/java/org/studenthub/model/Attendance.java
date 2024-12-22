@@ -2,18 +2,24 @@ package org.studenthub.model;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+
+import java.time.LocalDate;
 
 public class Attendance {
     private SimpleIntegerProperty attendanceId;
-    private SimpleIntegerProperty studentId;
-    private SimpleIntegerProperty scheduleId;
+    private SimpleStringProperty studentFullName;
+    private SimpleStringProperty disciplineName;
+    private SimpleObjectProperty<LocalDate> date;
     private SimpleBooleanProperty present;
 
-    public Attendance(int attendanceId, int studentId,
-                      int scheduleId, boolean present) {
+    public Attendance(int attendanceId, String studentFullName,
+                      String disciplineName, LocalDate date, boolean present) {
         this.attendanceId = new SimpleIntegerProperty(attendanceId);
-        this.studentId = new SimpleIntegerProperty(studentId);
-        this.scheduleId = new SimpleIntegerProperty(scheduleId);
+        this.studentFullName = new SimpleStringProperty(studentFullName);
+        this.disciplineName = new SimpleStringProperty(disciplineName);
+        this.date = new SimpleObjectProperty<>(date);
         this.present = new SimpleBooleanProperty(present);
     }
 
@@ -25,20 +31,32 @@ public class Attendance {
         this.attendanceId.set(attendanceId);
     }
 
-    public int getStudentId() {
-        return studentId.get();
+    public String getStudentFullName() {
+        return studentFullName.get();
     }
 
-    public void setStudentId(int studentId) {
-        this.studentId.set(studentId);
+    public void setStudentFullName(String studentFullName) {
+        this.studentFullName.set(studentFullName);
     }
 
-    public int getScheduleId() {
-        return scheduleId.get();
+    public String getDisciplineName() {
+        return disciplineName.get();
     }
 
-    public void setScheduleId(int scheduleId) {
-        this.scheduleId.set(scheduleId);
+    public void setDisciplineName(String disciplineName) {
+        this.disciplineName.set(disciplineName);
+    }
+
+    public SimpleObjectProperty<LocalDate> dateProperty() {
+        return date;
+    }
+
+    public LocalDate getDate() {
+        return date.get();
+    }
+
+    public void setDate(LocalDate date) {
+        this.date.set(date);
     }
 
     public boolean isPresent() {

@@ -47,6 +47,7 @@ public class Schedule {
     public SimpleObjectProperty<LocalDate> dateProperty() {
         return date;
     }
+
     public LocalDate getDate() {
         return date.get();
     }

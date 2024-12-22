@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -316,7 +317,7 @@
                                           <Label text="Schedule ID" GridPane.rowIndex="1" />
                                           <TextField fx:id="attendanceScheduleIdField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                           <Label text="Present" GridPane.rowIndex="2" />
-                                          <TextField fx:id="attendancePresentField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                          <RadioButton fx:id="attendancePresentRadioButton" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                        </children>
                                     </GridPane>
                                     <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddAttendanceButtonClick" text="Add Attendance" />

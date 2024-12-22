@@ -72,7 +72,7 @@ public class StudentHubController implements Initializable {
     private TextField attendanceScheduleIdField;
 
     @FXML
-    private TextField attendancePresentField;
+    private RadioButton attendancePresentRadioButton;
 
     @FXML
     private TextField attendanceAttendanceIdField;
@@ -114,6 +114,7 @@ public class StudentHubController implements Initializable {
         updateGroupsTableView();
         updateDisciplinesTableView();
         updateScheduleTableView();
+        updateAttendanceTableView();
 
         updateAllGroupNameChoiceBoxes();
         updateAllDisciplineNameChoiceBoxes();
@@ -210,17 +211,36 @@ public class StudentHubController implements Initializable {
         attendanceIdColumn.setCellValueFactory(new PropertyValueFactory<>("attendanceId"));
         attendanceTableView.getColumns().add(attendanceIdColumn);
 
-        TableColumn<Attendance, Integer> studentIdColumn = new TableColumn<>("Student ID");
-        studentIdColumn.setCellValueFactory(new PropertyValueFactory<>("studentId"));
-        attendanceTableView.getColumns().add(studentIdColumn);
+        TableColumn<Attendance, String> studentFullNameColumn = new TableColumn<>("Student Full Name");
+        studentFullNameColumn.setCellValueFactory(new PropertyValueFactory<>("studentFullName"));
+        attendanceTableView.getColumns().add(studentFullNameColumn);
 
-        TableColumn<Attendance, Integer> scheduleIdColumn = new TableColumn<>("Schedule ID");
-        scheduleIdColumn.setCellValueFactory(new PropertyValueFactory<>("scheduleId"));
-        attendanceTableView.getColumns().add(scheduleIdColumn);
+        TableColumn<Attendance, String> disciplineNameColumn = new TableColumn<>("Discipline Name");
+        disciplineNameColumn.setCellValueFactory(new PropertyValueFactory<>("disciplineName"));
+        attendanceTableView.getColumns().add(disciplineNameColumn);
+
+        TableColumn<Attendance, LocalDate> dateColumn = new TableColumn<>("Date");
+        dateColumn.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
+        attendanceTableView.getColumns().add(dateColumn);
 
         TableColumn<Attendance, Boolean> presentColumn = new TableColumn<>("Present");
         presentColumn.setCellValueFactory(new PropertyValueFactory<>("present"));
         attendanceTableView.getColumns().add(presentColumn);
+
+        attendanceIdColumn.setPrefWidth(130);
+        attendanceIdColumn.setMinWidth(130);
+
+        studentFullNameColumn.setPrefWidth(180);
+        studentFullNameColumn.setMinWidth(180);
+
+        disciplineNameColumn.setPrefWidth(130);
+        disciplineNameColumn.setMinWidth(130);
+
+        dateColumn.setPrefWidth(90);
+        dateColumn.setMinWidth(90);
+
+        presentColumn.setPrefWidth(80);
+        presentColumn.setMinWidth(80);
     }
 
     private void setupPracticalWorksTableView() {
@@ -287,6 +307,7 @@ public class StudentHubController implements Initializable {
         } catch (SQLException ignored) {}
 
         updateStudentsTableView();
+        updateAttendanceTableView();
         studentsFullNameField.clear();
         studentsGroupNameChoiceBox.getSelectionModel().clearSelection();
     }
@@ -491,27 +512,53 @@ public class StudentHubController implements Initializable {
 
     @FXML
     private void handleAddAttendanceButtonClick() throws SQLException {
-        int studentId = Integer.parseInt(attendanceStudentIdField.getText());
-        int scheduleId = Integer.parseInt(attendanceScheduleIdField.getText());
-        boolean present = Boolean.parseBoolean(attendancePresentField.getText());
+        boolean present = attendancePresentRadioButton.isSelected();
+        int studentId;
+        int scheduleId;
+        try {
+            studentId = Integer.parseInt(
+                    attendanceStudentIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Student ID must be integer");
+            return;
+        }
+        try {
+            scheduleId = Integer.parseInt(
+                    attendanceScheduleIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Schedule ID must be integer");
+            return;
+        }
 
-        Attendance attendance = new Attendance(-1, studentId, scheduleId, present);
-
-        studentService.addAttendance(attendance);
-        updateAttendanceTableView();
+        try {
+            studentService.addAttendance(studentId, scheduleId, present);
+            updateAttendanceTableView();
+        } catch (EntityNotFoundException | EntityAlreadyExistsException e) {
+            showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong");
+        }
 
         attendanceStudentIdField.clear();
         attendanceScheduleIdField.clear();
-        attendancePresentField.clear();
+        attendancePresentRadioButton.setSelected(false);
     }
 
     @FXML
     private void handleRemoveAttendanceButtonClick() throws SQLException {
-        int attendanceId = Integer.parseInt(attendanceStudentIdField.getText());
-        studentService.removeAttendance(attendanceId);
+        int attendanceId;
+        try {
+            attendanceId = Integer.parseInt(
+                    attendanceAttendanceIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Attendance ID must be integer");
+            return;
+        }
+        try {
+            studentService.removeAttendance(attendanceId);
+        } catch (SQLException ignored) {}
         updateAttendanceTableView();
-
-        attendanceStudentIdField.clear();
+        attendanceAttendanceIdField.clear();
     }
 
     @FXML
