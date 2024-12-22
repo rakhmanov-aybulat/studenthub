@@ -17,26 +17,39 @@ public class StudentService {
         this.db = db;
     }
 
-    public void addStudent(Student student) throws EntityNotFoundException,
+    public void addStudent(String fullName, String groupName ) throws EntityNotFoundException,
             EntityAlreadyExistsException, SQLException {
-        if (studentExists(student)) {
-            throw new EntityAlreadyExistsException("Group with name: " +
-                    student.getFullName() + " already exists");
+        if (studentExists(fullName, groupName)) {
+            throw new EntityAlreadyExistsException(
+                    "Student with name: " + fullName +
+                    " and group name: " + groupName + "already exists");
         }
-        int groupId = getGroupIdByGroupName(student.getGroupName());
-        db.executePreparedUpdate(
-                "INSERT INTO STUDENTS (full_name, group_id) VALUES (?, ?)",
-                student.getFullName(), groupId);
+        if (!groupExists(groupName)) {
+            throw new EntityNotFoundException(
+                    "Group not found with name: " + groupName);
+        }
+
+        String query = "INSERT INTO STUDENTS (full_name, group_id) " +
+                "SELECT ?, group_id " +
+                "FROM GROUPS WHERE group_name = ?";
+        db.executePreparedUpdate(query, fullName, groupName);
     }
 
-    public void removeStudent(int studentId) throws EntityDeletionException {
+    public void removeStudent(int studentId)
+            throws EntityDeletionException, SQLException {
         String query = "DELETE FROM STUDENTS WHERE student_id=?";
         try {
             db.executePreparedUpdate(query, studentId);
         } catch (SQLException e) {
-            throw new EntityDeletionException(
-                    "Cannot delete student with ID: " + studentId +
-                    ". because it has associations with other entities.");
+            System.out.println(e.getSQLState());
+            System.out.println(e.getErrorCode());
+            System.out.println(e.getMessage());
+            if (e.getErrorCode() == 19) {
+                throw new EntityDeletionException(
+                        "Cannot delete student with ID: " + studentId +
+                        ". because it has associations with other entities.");
+            }
+            throw e;
         }
     }
 
@@ -49,17 +62,12 @@ public class StudentService {
         }
     }
 
-    public boolean studentExists(Student student) {
-        int groupId;
-        try {
-            groupId = getGroupIdByGroupName(student.getGroupName());
-        } catch (EntityNotFoundException e) {
-            return false;
-        }
-
-        String query = "SELECT 1 FROM STUDENTS WHERE full_name=? AND group_id=?";
-        try (ResultSet rs = db.executePreparedQuery(query,
-                student.getFullName(), groupId)) {
+    public boolean studentExists(String fullName, String groupName) {
+        String query = "SELECT 1 FROM STUDENTS s " +
+                "JOIN GROUPS g ON s.group_id = g.group_id " +
+                "WHERE s.full_name = ? AND g.group_name = ?";
+        try (ResultSet rs = db.executePreparedQuery(
+                query, fullName, groupName)) {
             return rs.next();
         } catch (SQLException e) {
             return false;
@@ -79,10 +87,9 @@ public class StudentService {
             }
             String fullName = parts[0].trim();
             String groupName = parts[1].trim();
-            Student student = new Student(-1, fullName, groupName);
 
             try {
-                addStudent(student);
+                addStudent(fullName, groupName);
             } catch (EntityNotFoundException e) {
                 throw new ImportGroupNotFoundException(groupName, lineNumber , line);
             } catch (EntityAlreadyExistsException e) {
@@ -96,8 +103,7 @@ public class StudentService {
     public ObservableList<Student> getStudentObservableList() {
         ObservableList<Student> students = FXCollections.observableArrayList();
         String query = "SELECT s.student_id, s.full_name, g.group_name " +
-                "FROM STUDENTS s " +
-                "JOIN GROUPS g ON s.group_id = g.group_id";
+                "FROM STUDENTS s JOIN GROUPS g ON s.group_id = g.group_id";
         try (ResultSet rs = db.executeQuery(query)) {
             while (rs.next()) {
                 students.add(new Student(
@@ -106,9 +112,7 @@ public class StudentService {
                         rs.getString("group_name"))
                 );
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return students;
     }
 
@@ -122,14 +126,13 @@ public class StudentService {
                         rs.getString("group_name"))
                 );
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
         return groups;
     }
 
-    public void addGroup(Group group) throws EntityAlreadyExistsException, SQLException {
-        if (groupExists(group))
+    public void addGroup(Group group)
+            throws EntityAlreadyExistsException, SQLException {
+        if (groupExists(group.getGroupName()))
             throw new EntityAlreadyExistsException("Group with name: " +
                     group.getGroupName() + " already exists");
 
@@ -149,10 +152,9 @@ public class StudentService {
         }
     }
 
-    public boolean groupExists(Group group) {
+    public boolean groupExists(String groupName) {
         String query = "SELECT 1 FROM GROUPS WHERE group_name=?";
-        try (ResultSet rs = db.executePreparedQuery(
-                query, group.getGroupName())) {
+        try (ResultSet rs = db.executePreparedQuery(query, groupName)) {
             return rs.next();
         } catch (SQLException e) {
             return false;
@@ -326,6 +328,9 @@ public class StudentService {
     }
 
     public void addAttendance(int studentId, int scheduleId, boolean present) throws SQLException, EntityNotFoundException, EntityAlreadyExistsException {
+        if (attendanceExists(studentId, scheduleId)) {
+            throw new EntityAlreadyExistsException("Attendance already exists");
+        }
         if (!studentExists(studentId)) {
             throw new EntityNotFoundException(
                     "Student not found with id: " + studentId);
@@ -334,10 +339,6 @@ public class StudentService {
             throw new EntityNotFoundException(
                     "Schedule not found with id: " + scheduleId);
         }
-        if (attendanceExists(studentId, scheduleId)) {
-            throw new EntityAlreadyExistsException("Attendance already exists");
-        }
-
 
         db.executePreparedUpdate(
                 "INSERT INTO ATTENDANCE (student_id, schedule_id, present) " +

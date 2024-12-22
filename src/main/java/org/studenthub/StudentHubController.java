@@ -298,16 +298,24 @@ public class StudentHubController implements Initializable {
     @FXML
     private void handleAddStudentButtonClick() {
         String fullName = studentsFullNameField.getText().trim();
-        String groupName = studentsGroupNameChoiceBox.getValue().trim();
-        Student student = new Student(-1, fullName, groupName);
+        if (fullName.isBlank()) {
+            showErrorAlert("Full Name must be filled out.");
+            return;
+        }
+        String groupName = studentsGroupNameChoiceBox.getValue();
+        if (groupName == null) {
+            showErrorAlert("You can’t leave Group Name field blank.");
+            return;
+        }
         try {
-            studentService.addStudent(student);
+            studentService.addStudent(fullName, groupName);
         } catch (EntityNotFoundException | EntityAlreadyExistsException e) {
             showErrorAlert(e.getMessage());
-        } catch (SQLException ignored) {}
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong.");
+        }
 
         updateStudentsTableView();
-        updateAttendanceTableView();
         studentsFullNameField.clear();
         studentsGroupNameChoiceBox.getSelectionModel().clearSelection();
     }
@@ -316,7 +324,8 @@ public class StudentHubController implements Initializable {
     private void handleRemoveStudentButtonClick() {
         int studentId;
         try {
-            studentId = Integer.parseInt(studentsStudentIdField.getText().trim());
+            studentId = Integer.parseInt(
+                    studentsStudentIdField.getText().trim());
         } catch (NumberFormatException e) {
             showErrorAlert("Student ID must be integer");
             return;
@@ -326,6 +335,8 @@ public class StudentHubController implements Initializable {
             updateStudentsTableView();
         } catch (EntityDeletionException e) {
             showErrorAlert(e.getMessage());
+        } catch (SQLException e) {
+            showErrorAlert("Something went wrong.");
         }
         studentsStudentIdField.clear();
     }
@@ -337,16 +348,16 @@ public class StudentHubController implements Initializable {
         helpDialog.setHeaderText("To import the student list, follow these steps");
         helpDialog.setContentText(
                 "1. Click the 'Import Student List' button.\n" +
-                        "2. Select a CSV file containing the list of students.\n\n" +
-                        "The file must meet the following requirements:\n" +
-                        "   - Each line in the file represents a student.\n" +
-                        "   - Each line should be formatted as follows: 'Full Name,Group Name'.\n" +
-                        "   - The full name and group name should be separated by a comma.\n" +
-                        "   - The full name should be the first field, and the group name should be the second field.\n\n" +
-                        "Example:\n" +
-                        "   John Doe,Group A\n" +
-                        "   Jane Smith,Group B\n\n" +
-                        "Ensure that the file is correctly formatted before importing."
+                "2. Select a CSV file containing the list of students.\n\n" +
+                "The file must meet the following requirements:\n" +
+                "   - Each line in the file represents a student.\n" +
+                "   - Each line should be formatted as follows: 'Full Name,Group Name'.\n" +
+                "   - The full name and group name should be separated by a comma.\n" +
+                "   - The full name should be the first field, and the group name should be the second field.\n\n" +
+                "Example:\n" +
+                "   John Doe,Group A\n" +
+                "   Jane Smith,Group B\n\n" +
+                "Ensure that the file is correctly formatted before importing."
         );
         helpDialog.showAndWait();
     }
@@ -363,19 +374,18 @@ public class StudentHubController implements Initializable {
             return;
         }
 
-        String errorMessage = null;
         try {
             studentService.importStudentsFromFile(selectedFile);
-        } catch (ImportInvalidLineFormatException | ImportGroupNotFoundException e) {
-            errorMessage = e.getMessage() +
-                    "\n\nPlease correct the errors and try again.";
+        } catch (ImportInvalidLineFormatException |
+                 ImportGroupNotFoundException e) {
+            showErrorAlert(e.getMessage() +
+                    "\n\nPlease correct the errors and try again.");
         } catch (FileNotFoundException e) {
-            errorMessage = "File not found with name: " + selectedFile.getName();
+            showErrorAlert("File not found with name: " +
+                    selectedFile.getName());
         } catch (Exception e) {
-            errorMessage = "Something went wrong, please try again";
+            showErrorAlert("Something went wrong, please try again");
         } finally {
-            if (errorMessage != null)
-                showErrorAlert(errorMessage);
             updateStudentsTableView();
         }
     }
