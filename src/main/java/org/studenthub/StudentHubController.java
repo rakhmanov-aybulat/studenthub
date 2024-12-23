@@ -147,8 +147,8 @@ public class StudentHubController implements Initializable {
         groupNameColumn.setCellValueFactory(new PropertyValueFactory<>("groupName"));
         studentsTableView.getColumns().add(groupNameColumn);
 
-        studentIdColumn.setPrefWidth(100);
-        studentIdColumn.setMinWidth(100);
+        studentIdColumn.setPrefWidth(110);
+        studentIdColumn.setMinWidth(110);
 
         fullNameColumn.setPrefWidth(300);
         fullNameColumn.setMinWidth(300);
@@ -207,8 +207,8 @@ public class StudentHubController implements Initializable {
         dateColumn.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
         scheduleTableView.getColumns().add(dateColumn);
 
-        scheduleIdColumn.setPrefWidth(110);
-        scheduleIdColumn.setMinWidth(110);
+        scheduleIdColumn.setPrefWidth(120);
+        scheduleIdColumn.setMinWidth(120);
 
         groupNameColumn.setPrefWidth(150);
         groupNameColumn.setMinWidth(150);
@@ -244,17 +244,17 @@ public class StudentHubController implements Initializable {
         attendanceIdColumn.setPrefWidth(130);
         attendanceIdColumn.setMinWidth(130);
 
-        studentFullNameColumn.setPrefWidth(180);
-        studentFullNameColumn.setMinWidth(180);
+        studentFullNameColumn.setPrefWidth(255);
+        studentFullNameColumn.setMinWidth(255);
 
-        disciplineNameColumn.setPrefWidth(130);
-        disciplineNameColumn.setMinWidth(130);
+        disciplineNameColumn.setPrefWidth(185);
+        disciplineNameColumn.setMinWidth(185);
 
         dateColumn.setPrefWidth(90);
         dateColumn.setMinWidth(90);
 
-        presentColumn.setPrefWidth(80);
-        presentColumn.setMinWidth(80);
+        presentColumn.setPrefWidth(85);
+        presentColumn.setMinWidth(85);
     }
 
     private void setupPracticalWorksTableView() {
@@ -281,17 +281,17 @@ public class StudentHubController implements Initializable {
         practicalWorkIdColumn.setPrefWidth(150);
         practicalWorkIdColumn.setMinWidth(150);
 
-        studentFullNameColumn.setPrefWidth(180);
-        studentFullNameColumn.setMinWidth(180);
+        studentFullNameColumn.setPrefWidth(250);
+        studentFullNameColumn.setMinWidth(250);
 
-        disciplineNameColumn.setPrefWidth(130);
-        disciplineNameColumn.setMinWidth(130);
+        disciplineNameColumn.setPrefWidth(185);
+        disciplineNameColumn.setMinWidth(185);
 
         dateColumn.setPrefWidth(90);
         dateColumn.setMinWidth(90);
 
-        gradeColumn.setPrefWidth(60);
-        gradeColumn.setMinWidth(60);
+        gradeColumn.setPrefWidth(70);
+        gradeColumn.setMinWidth(70);
     }
 
     private void setupStatisticsTableView() {
@@ -307,14 +307,14 @@ public class StudentHubController implements Initializable {
         averageGradeColumn.setCellValueFactory(new PropertyValueFactory<>("averageGrade"));
         statisticsTableView.getColumns().add(averageGradeColumn);
 
-        nameColumn.setPrefWidth(150);
-        nameColumn.setMinWidth(150);
+        nameColumn.setPrefWidth(270);
+        nameColumn.setMinWidth(270);
 
-        attendancePercentageColumn.setPrefWidth(180);
-        attendancePercentageColumn.setMinWidth(180);
+        attendancePercentageColumn.setPrefWidth(200);
+        attendancePercentageColumn.setMinWidth(200);
 
-        averageGradeColumn.setPrefWidth(130);
-        averageGradeColumn.setMinWidth(130);
+        averageGradeColumn.setPrefWidth(140);
+        averageGradeColumn.setMinWidth(140);
     }
 
     private void updateStudentsTableView() {

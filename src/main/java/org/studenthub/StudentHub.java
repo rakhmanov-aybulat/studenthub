@@ -30,8 +30,8 @@ public class StudentHub extends Application {
         Parent root = loader.load();
 
         stage.setTitle("StudentHub");
-        stage.setMinWidth(900);
-        stage.setMinHeight(650);
+        stage.setMinWidth(1100);
+        stage.setMinHeight(825);
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
