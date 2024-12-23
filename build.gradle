@@ -16,5 +16,15 @@ javafx {
 }
 
 application {
-    mainClass.set("org.studenthub.StudentHub")
+    mainClass = 'org.studenthub.Launcher'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': 'org.studenthub.Launcher'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
