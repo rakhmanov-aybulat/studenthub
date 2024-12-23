@@ -396,4 +396,62 @@ public class StudentService {
             return false;
         }
     }
+
+    public ObservableList<Statistics> getStatisticsObservableList(Statistics.StatisticsType statisticsType, String disciplineName) {
+        ObservableList<Statistics> statistics = FXCollections.observableArrayList();
+        String query = null;
+
+        switch (statisticsType) {
+            case STUDENT:
+                query = "SELECT " +
+                        "s.full_name AS name, " +
+                        "(COUNT(CASE WHEN a.present = TRUE THEN 1 END) * 100.0 / COUNT(DISTINCT sch.date)) AS attendance_percentage, " +
+                        "AVG(pw.grade) AS average_grade " +
+                        "FROM Students s " +
+                        "JOIN Attendance a ON s.student_id = a.student_id " +
+                        "JOIN Schedule sch ON a.schedule_id = sch.schedule_id " +
+                        "JOIN Disciplines d ON sch.discipline_id = d.discipline_id " +
+                        "LEFT JOIN PracticalWorks pw ON s.student_id = pw.student_id AND sch.discipline_id = pw.discipline_id " +
+                        "WHERE d.discipline_name = ? " +
+                        "GROUP BY s.student_id, s.full_name, d.discipline_name";
+                break;
+            case GROUP:
+                query = "WITH StudentPerformance AS ( " +
+                        "SELECT " +
+                        "s.group_id, " +
+                        "d.discipline_name, " +
+                        "(COUNT(CASE WHEN a.present = TRUE THEN 1 END) * 100.0 / COUNT(DISTINCT sch.date)) AS attendance_percentage, " +
+                        "AVG(pw.grade) AS average_grade " +
+                        "FROM Students s " +
+                        "JOIN Attendance a ON s.student_id = a.student_id " +
+                        "JOIN Schedule sch ON a.schedule_id = sch.schedule_id " +
+                        "JOIN Disciplines d ON sch.discipline_id = d.discipline_id " +
+                        "LEFT JOIN PracticalWorks pw ON s.student_id = pw.student_id AND sch.discipline_id = pw.discipline_id " +
+                        "WHERE d.discipline_name = ? " +
+                        "GROUP BY s.group_id, d.discipline_name, s.student_id " +
+                        ") " +
+                        "SELECT " +
+                        "g.group_name AS name, " +
+                        "AVG(sp.attendance_percentage) AS attendance_percentage, " +
+                        "AVG(sp.average_grade) AS average_grade " +
+                        "FROM StudentPerformance sp " +
+                        "JOIN Groups g ON sp.group_id = g.group_id " +
+                        "GROUP BY g.group_name";
+                break;
+        }
+
+        try (ResultSet rs = db.executePreparedQuery(query, disciplineName)) {
+            while (rs.next()) {
+                statistics.add(new Statistics(
+                        rs.getString("name"),
+                        rs.getFloat("attendance_percentage"),
+                        rs.getFloat("average_grade")
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return statistics;
+    }
 }

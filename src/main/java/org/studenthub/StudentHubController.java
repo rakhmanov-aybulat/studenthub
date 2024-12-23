@@ -96,6 +96,15 @@ public class StudentHubController implements Initializable {
     @FXML
     private TextField practicalWorksPracticalWorkIdField;
 
+    @FXML
+    private TableView<Statistics> statisticsTableView;
+
+    @FXML
+    private ChoiceBox<String> statisticsTypeChoiceBox;
+
+    @FXML
+    private ChoiceBox<String> statisticsDisciplineNameChoiceBox;
+
     private final StudentService studentService;
 
     public StudentHubController(StudentService studentService) {
@@ -110,6 +119,7 @@ public class StudentHubController implements Initializable {
         setupScheduleTableView();
         setupAttendanceTableView();
         setupPracticalWorksTableView();
+        setupStatisticsTableView();
 
         updateStudentsTableView();
         updateGroupsTableView();
@@ -121,6 +131,7 @@ public class StudentHubController implements Initializable {
         updateAllGroupNameChoiceBoxes();
         updateAllDisciplineNameChoiceBoxes();
         updateAllGradeChoiceBoxes();
+        updateAllStatisticsTypeChoiceBoxes();
     }
 
     private void setupStudentsTableView() {
@@ -283,6 +294,29 @@ public class StudentHubController implements Initializable {
         gradeColumn.setMinWidth(60);
     }
 
+    private void setupStatisticsTableView() {
+        TableColumn<Statistics, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        statisticsTableView.getColumns().add(nameColumn);
+
+        TableColumn<Statistics, Float> attendancePercentageColumn = new TableColumn<>("Attendance Percentage");
+        attendancePercentageColumn.setCellValueFactory(new PropertyValueFactory<>("attendancePercentage"));
+        statisticsTableView.getColumns().add(attendancePercentageColumn);
+
+        TableColumn<Statistics, Float> averageGradeColumn = new TableColumn<>("Average Grade");
+        averageGradeColumn.setCellValueFactory(new PropertyValueFactory<>("averageGrade"));
+        statisticsTableView.getColumns().add(averageGradeColumn);
+
+        nameColumn.setPrefWidth(150);
+        nameColumn.setMinWidth(150);
+
+        attendancePercentageColumn.setPrefWidth(180);
+        attendancePercentageColumn.setMinWidth(180);
+
+        averageGradeColumn.setPrefWidth(130);
+        averageGradeColumn.setMinWidth(130);
+    }
+
     private void updateStudentsTableView() {
         ObservableList<Student> students = studentService.getStudentObservableList();
         studentsTableView.setItems(students);
@@ -311,6 +345,13 @@ public class StudentHubController implements Initializable {
     private void updatePracticalWorksTableView() {
         ObservableList<PracticalWork> practicalWorks = studentService.getPracticalWorksObservableList();
         practicalWorksTableView.setItems(practicalWorks);
+    }
+
+    private void updateStatisticsTableView(
+            Statistics.StatisticsType statisticsType, String disiplineName) {
+        ObservableList<Statistics> statistics =
+                studentService.getStatisticsObservableList(statisticsType, disiplineName);
+        statisticsTableView.setItems(statistics);
     }
 
     @FXML
@@ -429,10 +470,12 @@ public class StudentHubController implements Initializable {
     private void updateAllDisciplineNameChoiceBoxes() {
         scheduleDisciplineNameChoiceBox.getItems().clear();
         practicalWorksDisciplineNameChoiceBox.getItems().clear();
+        statisticsDisciplineNameChoiceBox.getItems().clear();
         ObservableList<Discipline> disciplines = studentService.getDisciplinesObservableList();
         disciplines.forEach(discipline -> {
             scheduleDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
             practicalWorksDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
+            statisticsDisciplineNameChoiceBox.getItems().add(discipline.getDisciplineName());
         });
     }
 
@@ -441,6 +484,14 @@ public class StudentHubController implements Initializable {
         ObservableList<Integer> grades = FXCollections.observableArrayList(1, 2, 3, 4, 5);
         grades.forEach(grade -> {
             practicalWorksGradeChoiceBox.getItems().add(grade.toString());
+        });
+    }
+
+    private void updateAllStatisticsTypeChoiceBoxes() {
+        statisticsTypeChoiceBox.getItems().clear();
+        ObservableList<String> statisticsTypes = FXCollections.observableArrayList("Student", "Group");
+        statisticsTypes.forEach(statisticsType -> {
+            statisticsTypeChoiceBox.getItems().add(statisticsType);
         });
     }
 
@@ -694,5 +745,33 @@ public class StudentHubController implements Initializable {
             showErrorAlert("Something went wrong.");
         }
         practicalWorksPracticalWorkIdField.clear();
+    }
+
+    @FXML
+    private void handleUpdateStatisticsButtonClick() {
+        Statistics.StatisticsType statisticsType;
+        String statisticsTypeString = statisticsTypeChoiceBox.getValue();
+        if (statisticsTypeString == null) {
+            showErrorAlert("You can’t leave Statistics Type field blank.");
+            return;
+        }
+        if (statisticsTypeString.equals("Student")) {
+            statisticsType = Statistics.StatisticsType.STUDENT;
+        }
+        else if (statisticsTypeString.equals("Group")) {
+            statisticsType = Statistics.StatisticsType.GROUP;
+        }
+        else {
+            showErrorAlert("Something went wrong.");
+            return;
+        }
+
+        String disciplineName = statisticsDisciplineNameChoiceBox.getValue();
+        if (disciplineName == null) {
+            showErrorAlert("You can’t leave Discipline Name field blank.");
+            return;
+        }
+
+        updateStatisticsTableView(statisticsType, disciplineName);
     }
 }

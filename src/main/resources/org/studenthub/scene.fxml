@@ -17,6 +17,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <TabPane minHeight="650.0" minWidth="900.0" prefHeight="650.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
   <tabs>
@@ -383,7 +384,7 @@
                                           <Label text="Grade" GridPane.rowIndex="3" />
                                           <DatePicker fx:id="practicalWorksDatePicker" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                           <ChoiceBox fx:id="practicalWorksDisciplineNameChoiceBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                          <ChoiceBox fx:id="practicalWorksGradeChoiceBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                          <ChoiceBox fx:id="practicalWorksGradeChoiceBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                                        </children>
                                     </GridPane>
                                     <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleAddPracticalWorkButtonClick" text="Add Practical Work" />
@@ -423,16 +424,28 @@
                      <items>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <TableView layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="statisticsTableView" layoutX="146.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                            <children>
-                              <VBox layoutX="61.0" prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+                              <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
                                  <children>
-                                    <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Show Statistics" />
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="By Student" />
-                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="By Group" />
+                                    <Label text="Filters">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                    </Label>
+                                    <Label text="Select Statistics Type" />
+                                    <ChoiceBox fx:id="statisticsTypeChoiceBox" maxWidth="1.7976931348623157E308" />
+                                    <Label text="Select Discipline" />
+                                    <ChoiceBox fx:id="statisticsDisciplineNameChoiceBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" />
+                                    <Separator prefWidth="200.0">
+                                       <VBox.margin>
+                                          <Insets bottom="8.0" top="5.0" />
+                                       </VBox.margin>
+                                    </Separator>
+                                    <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleUpdateStatisticsButtonClick" text="Update Statistics" />
                                  </children>
                               </VBox>
                            </children>
