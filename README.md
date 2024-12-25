@@ -7,7 +7,7 @@
 
 ## Запуск
 1. **Скачайте JAR-файл**:
-    - Вы можете скачать последний JAR-файл со [страницы релизов](https://github.com/rakhmanov-aybulat/studenthub/releases).
+    - Вы можете скачать JAR-файл со [страницы релизов](https://github.com/rakhmanov-aybulat/studenthub/releases).
 
 2. **Запустите приложение**:
     - Запустите скачанный JAR-файл с помощью следующей команды:
