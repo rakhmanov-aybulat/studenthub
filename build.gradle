@@ -9,7 +9,17 @@ repositories {
 
 dependencies {
     implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
+    runtimeOnly "org.openjfx:javafx-graphics:21:win"
+    runtimeOnly "org.openjfx:javafx-graphics:21:linux"
+    runtimeOnly "org.openjfx:javafx-graphics:21:mac"
+    runtimeOnly "org.openjfx:javafx-controls:21:win"
+    runtimeOnly "org.openjfx:javafx-controls:21:linux"
+    runtimeOnly "org.openjfx:javafx-controls:21:mac"
+    runtimeOnly "org.openjfx:javafx-fxml:21:win"
+    runtimeOnly "org.openjfx:javafx-fxml:21:linux"
+    runtimeOnly "org.openjfx:javafx-fxml:21:mac"
 }
+
 javafx {
     version = "21"
     modules = [ 'javafx.controls', 'javafx.fxml' ]
